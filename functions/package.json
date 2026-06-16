@@ -1,0 +1,25 @@
+{
+  "name": "@charity-net/functions",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "dist/index.js",
+  "engines": {
+    "node": "20"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "tsc -p tsconfig.json --watch --preserveWatchOutput",
+    "deploy": "firebase deploy --only functions",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "echo 'functions: no lint configured yet' && exit 0",
+    "test": "echo 'functions: no tests yet' && exit 0"
+  },
+  "dependencies": {
+    "firebase-admin": "^12.5.0",
+    "firebase-functions": "^5.0.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.0"
+  }
+}

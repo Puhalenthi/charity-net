@@ -1,0 +1,29 @@
+{
+  "name": "charity-net",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Connecting people, charities, and the world",
+  "license": "MIT",
+  "packageManager": "pnpm@9.0.0",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "scripts": {
+    "build": "pnpm -r --filter './shared' build && pnpm -r --filter './server' build && pnpm -r --filter './client' build",
+    "dev": "concurrently -n shared,server,client,emulators -c blue,magenta,cyan,yellow \"pnpm dev:shared\" \"pnpm dev:server\" \"pnpm dev:client\" \"pnpm dev:emulators\"",
+    "dev:shared": "pnpm --filter @charity-net/shared dev",
+    "dev:server": "pnpm --filter @charity-net/server dev",
+    "dev:client": "pnpm --filter @charity-net/client dev",
+    "dev:emulators": "firebase emulators:start --only auth,firestore,storage",
+    "typecheck": "pnpm -r typecheck",
+    "lint": "pnpm -r lint",
+    "test": "pnpm -r test",
+    "deploy:client": "pnpm --filter @charity-net/client build && firebase deploy --only hosting,firestore:rules,firestore:indexes,storage,functions",
+    "deploy:server": "gcloud run deploy charity-net-api --source server --region europe-west1"
+  },
+  "devDependencies": {
+    "concurrently": "^9.0.0",
+    "firebase-tools": "^13.0.0",
+    "typescript": "^5.6.0"
+  }
+}

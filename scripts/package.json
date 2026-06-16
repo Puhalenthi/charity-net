@@ -1,0 +1,19 @@
+{
+  "name": "@charity-net/scripts",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "set-admin": "tsx src/setAdmin.ts",
+    "seed": "tsx src/seedEmulator.ts"
+  },
+  "dependencies": {
+    "@charity-net/shared": "workspace:*",
+    "firebase-admin": "^12.5.0"
+  },
+  "devDependencies": {
+    "tsx": "^4.19.0",
+    "typescript": "^5.6.0",
+    "@types/node": "^20.16.0"
+  }
+}

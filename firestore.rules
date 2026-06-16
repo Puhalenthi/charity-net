@@ -1,0 +1,163 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function uid() {
+      return request.auth.uid;
+    }
+
+    function role() {
+      return request.auth.token.role;
+    }
+
+    function isApproved() {
+      return request.auth.token.approved == true;
+    }
+
+    function isAdmin() {
+      return signedIn() && role() == 'admin';
+    }
+
+    function isCharity() {
+      return signedIn() && role() == 'charity' && isApproved();
+    }
+
+    function isPerson() {
+      return signedIn() && role() == 'person';
+    }
+
+    function claimedCharityId() {
+      return request.auth.token.charityId;
+    }
+
+    // ---- users ----
+    // user docs are created server-side via admin SDK (which bypasses rules);
+    // clients may only edit their own non-role fields (e.g. searchRadiusKm, notificationPrefs).
+    match /users/{userId} {
+      allow read: if signedIn() && (uid() == userId || isAdmin());
+      allow create: if false;
+      allow update: if signedIn() && uid() == userId
+        && !( 'role' in request.resource.data.diff(resource.data).changedKeys() )
+        && !( 'charityId' in request.resource.data.diff(resource.data).changedKeys() );
+      allow delete: if false;
+    }
+
+    // ---- charities ----
+    match /charities/{charityId} {
+      allow read: if signedIn() && (
+        resource.data.status == 'approved'
+        || resource.data.ownerUid == uid()
+        || isAdmin()
+      );
+      allow create, update, delete: if false; // server-only
+
+      match /wishlist/{wishlistId} {
+        allow read: if signedIn() && (
+          get(/databases/$(database)/documents/charities/$(charityId)).data.status == 'approved'
+          || get(/databases/$(database)/documents/charities/$(charityId)).data.ownerUid == uid()
+          || isAdmin()
+        );
+        allow create, update, delete: if false; // server-only
+      }
+    }
+
+    // ---- items ----
+    match /items/{itemId} {
+      allow read: if signedIn() && (
+        resource.data.status in ['active', 'reserved', 'given']
+        || resource.data.ownerUid == uid()
+        || isAdmin()
+      );
+
+      // Server writes most fields. The owner can only edit basic editable fields and only
+      // while the item is in draft/active state.
+      allow create: if false;
+      allow update: if signedIn()
+        && resource.data.ownerUid == uid()
+        && resource.data.status in ['draft', 'active']
+        && request.resource.data.diff(resource.data).changedKeys()
+             .hasOnly(['title', 'description', 'updatedAt']);
+      allow delete: if false;
+
+      match /interests/{charityId} {
+        allow read: if signedIn() && (
+          get(/databases/$(database)/documents/items/$(itemId)).data.ownerUid == uid()
+          || isAdmin()
+          || (isCharity() && claimedCharityId() == charityId)
+        );
+        // All writes go through the server so the interest doc carries denormalised charity data.
+        allow create, update, delete: if false;
+      }
+    }
+
+    // ---- threads ----
+    match /threads/{threadId} {
+      allow read: if signedIn() && uid() in resource.data.participants;
+      // Threads are created the first time a charity sends a message into a per-item thread;
+      // the deterministic id is `${itemId}_${charityId}`.
+      allow create: if signedIn()
+        && request.resource.data.id == threadId
+        && uid() in request.resource.data.participants
+        && request.resource.data.participants.size() == 2
+        && (
+          // poster opening it
+          isPerson()
+            && get(/databases/$(database)/documents/items/$(request.resource.data.itemId)).data.ownerUid == uid()
+          ||
+          // charity opening it
+          isCharity()
+            && claimedCharityId() == request.resource.data.charityId
+        );
+      // lastMessage + unread are updated by the messaging Cloud Function only.
+      allow update: if false;
+      allow delete: if false;
+
+      match /messages/{messageId} {
+        allow read: if signedIn()
+          && uid() in get(/databases/$(database)/documents/threads/$(threadId)).data.participants;
+        allow create: if signedIn()
+          && uid() in get(/databases/$(database)/documents/threads/$(threadId)).data.participants
+          && request.resource.data.fromUid == uid()
+          && request.resource.data.text is string
+          && request.resource.data.text.size() > 0
+          && request.resource.data.text.size() <= 2000
+          && get(/databases/$(database)/documents/threads/$(threadId)).data.closed == false;
+        allow update, delete: if false;
+      }
+    }
+
+    // ---- notifications ----
+    match /notifications/{userId}/entries/{notificationId} {
+      allow read: if signedIn() && uid() == userId;
+      // Only the `read` flag is client-mutable.
+      allow update: if signedIn() && uid() == userId
+        && request.resource.data.diff(resource.data).changedKeys().hasOnly(['read']);
+      allow create, delete: if false;
+    }
+
+    // ---- adminAudit / aiUsage ----
+    match /adminAudit/{eventId} {
+      allow read: if isAdmin();
+      allow write: if false;
+    }
+    match /aiUsage/{day} {
+      allow read: if isAdmin();
+      allow write: if false;
+    }
+
+    // ---- reports ----
+    match /reports/{reportId} {
+      allow read: if isAdmin();
+      allow create: if signedIn()
+        && request.resource.data.reporterUid == uid()
+        && request.resource.data.targetType is string
+        && request.resource.data.targetId is string;
+      allow update, delete: if isAdmin();
+    }
+  }
+}

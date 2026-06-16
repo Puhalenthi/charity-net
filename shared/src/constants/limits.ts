@@ -1,0 +1,12 @@
+export const INTEREST_WINDOW_MS = 24 * 60 * 60 * 1000;
+export const MAX_IMAGES_PER_ITEM = 5;
+export const MAX_AI_TAGS = 10;
+export const MAX_AI_KEYWORDS = 5;
+export const DEFAULT_SEARCH_RADIUS_KM = 10;
+export const MIN_SEARCH_RADIUS_KM = 1;
+export const MAX_SEARCH_RADIUS_KM = 50;
+export const COORD_JITTER_METERS = 100;
+export const MAX_ITEMS_PER_DAY_PER_USER = 20;
+export const MAX_MESSAGE_LENGTH = 2000;
+export const MAX_TITLE_LENGTH = 100;
+export const MAX_DESCRIPTION_LENGTH = 1000;

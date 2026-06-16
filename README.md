@@ -33,30 +33,37 @@ for production setup.
 
 ## Getting started
 
+One command — installs deps, builds the shared package, copies `.env` files,
+and opens three terminal windows (emulators, dev server, first-run seed):
+
 ```bash
-corepack enable
+corepack enable      # one-time, enables pnpm
+pnpm start
+```
+
+That script (`scripts/start-dev.sh`) detects whichever terminal emulator you have
+(gnome-terminal, konsole, alacritty, kitty, wezterm, foot, or xterm).
+
+Emulator data persists to `.emulator-data/` on Ctrl-C, so subsequent runs skip
+the seed. Delete that folder to re-seed.
+
+### Manual alternative
+
+```bash
 pnpm install
-
-cp client/.env.example client/.env.local
-cp server/.env.example server/.env
-
-# Terminal 1 — emulators
-pnpm dev:emulators
-
-# Terminal 2 — server, client, shared (one command)
-pnpm dev
+pnpm --filter @charity-net/shared build
+pnpm dev:emulators   # terminal 1
+pnpm dev             # terminal 2 (shared watch + Express + Vite)
+pnpm seed            # terminal 3, one-time
 ```
 
-In a third terminal once emulators are up:
+Demo accounts the seed creates:
 
-```bash
-FIRESTORE_EMULATOR_HOST=127.0.0.1:8081 \
-FIREBASE_AUTH_EMULATOR_HOST=127.0.0.1:9099 \
-FIREBASE_PROJECT_ID=charity-net-dev \
-pnpm --filter @charity-net/scripts seed
-```
-
-The seed prints test accounts (person / charity / admin) you can sign in with.
+| Email | Password | Role |
+|---|---|---|
+| `person@example.com` | `password123` | person |
+| `charity@example.com` | `password123` | charity (pre-approved) |
+| `admin@example.com` | `password123` | admin |
 
 ## Test plan
 

@@ -9,12 +9,14 @@
     "node": ">=20.0.0"
   },
   "scripts": {
+    "start": "bash ./scripts/start-dev.sh",
     "build": "pnpm -r --filter './shared' build && pnpm -r --filter './server' build && pnpm -r --filter './client' build",
-    "dev": "concurrently -n shared,server,client,emulators -c blue,magenta,cyan,yellow \"pnpm dev:shared\" \"pnpm dev:server\" \"pnpm dev:client\" \"pnpm dev:emulators\"",
+    "dev": "concurrently -n shared,server,client -c blue,magenta,cyan \"pnpm dev:shared\" \"pnpm dev:server\" \"pnpm dev:client\"",
     "dev:shared": "pnpm --filter @charity-net/shared dev",
     "dev:server": "pnpm --filter @charity-net/server dev",
     "dev:client": "pnpm --filter @charity-net/client dev",
     "dev:emulators": "firebase emulators:start --only auth,firestore,storage",
+    "seed": "FIRESTORE_EMULATOR_HOST=127.0.0.1:8081 FIREBASE_AUTH_EMULATOR_HOST=127.0.0.1:9099 FIREBASE_PROJECT_ID=charity-net-dev pnpm --filter @charity-net/scripts seed",
     "typecheck": "pnpm -r typecheck",
     "lint": "pnpm -r lint",
     "test": "pnpm -r test",

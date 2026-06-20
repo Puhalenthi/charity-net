@@ -28,8 +28,11 @@ functions/  the single Firestore-triggered Cloud Function
 scripts/    set-admin, seed-emulator
 ```
 
-See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the data model, [docs/DEPLOY.md](docs/DEPLOY.md)
-for production setup.
+See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the data model.
+
+Deploying for the first time? Follow [docs/DEPLOY-FIRST-TIME.md](docs/DEPLOY-FIRST-TIME.md) —
+a zero-to-live walkthrough that uses only the browser (Cloud Shell). The shorter
+[docs/DEPLOY.md](docs/DEPLOY.md) is the reference for ongoing deploys.
 
 ## Getting started
 

@@ -15,7 +15,7 @@ giver picks a recipient.
 - **Storage**: Firebase Cloud Storage
 - **Maps**: Google Maps JS API + marker clusterer
 - **AI**: OpenAI Vision (controlled-vocabulary tags + safety flags)
-- **Email**: SendGrid
+- **Notifications**: in-app only (real-time "Alerts" feed in Firestore; no email)
 - **One Cloud Function**: maintains `lastMessage` / unread counts on chat threads
 
 ## Repo layout (pnpm workspaces)
@@ -31,7 +31,8 @@ scripts/    set-admin, seed-emulator
 See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the data model.
 
 Deploying for the first time? Follow [docs/DEPLOY-FIRST-TIME.md](docs/DEPLOY-FIRST-TIME.md) —
-a zero-to-live walkthrough that uses only the browser (Cloud Shell). The shorter
+a zero-to-live walkthrough. All Google Cloud setup is done in the browser console;
+only the Firebase deploy (one step) uses a command line on your laptop. The shorter
 [docs/DEPLOY.md](docs/DEPLOY.md) is the reference for ongoing deploys.
 
 ## Getting started

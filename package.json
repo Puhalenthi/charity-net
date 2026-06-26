@@ -20,8 +20,9 @@
     "typecheck": "pnpm -r typecheck",
     "lint": "pnpm -r lint",
     "test": "pnpm -r test",
-    "deploy:client": "pnpm --filter @charity-net/client build && firebase deploy --only hosting,firestore:rules,firestore:indexes,storage,functions",
-    "deploy:server": "gcloud run deploy charity-net-api --source server --region europe-west1"
+    "deploy": "pnpm run deploy:client",
+    "deploy:client": "pnpm --filter @charity-net/shared build && pnpm --filter @charity-net/client build && firebase deploy --only hosting,firestore:rules,firestore:indexes,storage,functions",
+    "deploy:server:manual": "gcloud builds submit --config cloudbuild.yaml ."
   },
   "devDependencies": {
     "concurrently": "^9.0.0",

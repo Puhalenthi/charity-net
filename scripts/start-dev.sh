@@ -70,7 +70,7 @@ if [[ ! -f client/.env.local ]]; then
 fi
 if [[ ! -f server/.env ]]; then
   cp server/.env.example server/.env
-  yellow "Created server/.env — fill in OPENAI_API_KEY (and SENDGRID/GMAPS if you have them)"
+  yellow "Created server/.env — fill in OPENAI_API_KEY (and GMAPS if you have it)"
 fi
 
 # ---- install + build shared (so server's tsx watch can resolve it) ----------

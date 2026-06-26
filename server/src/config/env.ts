@@ -10,8 +10,6 @@ const EnvSchema = z.object({
   FIREBASE_STORAGE_BUCKET: z.string().min(1).optional(),
   OPENAI_API_KEY: z.string().optional(),
   OPENAI_MODEL: z.string().default('gpt-4o'),
-  SENDGRID_API_KEY: z.string().optional(),
-  EMAIL_FROM: z.string().email().default('no-reply@charity.net'),
   GOOGLE_MAPS_SERVER_KEY: z.string().optional(),
   ADMIN_BOOTSTRAP_EMAIL: z.string().email().optional(),
   JOB_SECRET: z.string().min(8).default('dev-only-change-me'),

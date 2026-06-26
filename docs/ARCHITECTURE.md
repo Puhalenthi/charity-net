@@ -8,7 +8,7 @@ Person posts item     → POST /api/items (server)
                        → server creates Firestore item doc (aiStatus=pending)
                        → server fires OpenAI Vision scan
                           → result stored on item doc (aiTags, aiCategory, aiSafety)
-                          → wishlist matcher → in-app + email notifications to matched charities
+                          → wishlist matcher → in-app notifications to matched charities
 Charity expresses interest within 24h → POST /api/items/:id/interests
 Person picks a charity after window  → POST /api/items/:id/finalize-recipient
 Either side starts chat              → /api/-less; direct Firestore writes gated by rules
@@ -51,7 +51,7 @@ for (const [start, end] of bounds) {
 - Custom claims: `{ role: 'person' | 'charity' | 'admin', approved: boolean, charityId?: string }`.
 - Person signups auto-approve.
 - Charity signups create a `charities` doc in `status='pending'` and a custom claim with `approved=false`.
-- Admin approval (`POST /admin/charities/:id/approve`) flips the doc + claim and emails/notifies.
+- Admin approval (`POST /admin/charities/:id/approve`) flips the doc + claim and notifies (in-app).
 - Admin role is provisioned only via `scripts/setAdmin.ts`. No public route.
 
 ## Server boundaries
@@ -91,7 +91,7 @@ Run inside the emulator first.
 1. Sign up as Person A → confirm `users/{uid}` doc + claim `role=person, approved=true`.
 2. Sign up as Charity X → confirm `charities/{id}` doc in `pending`; UI shows pending screen.
 3. `pnpm --filter @charity-net/scripts set-admin admin@example.com` → log in, see `/admin/approvals`.
-4. Approve Charity X → status flips, claim updates, email sent, in-app notification appears, audit row written.
+4. Approve Charity X → status flips, claim updates, in-app notification appears, audit row written.
 5. Charity X sets a wishlist row with tag `sofa`.
 6. Person A posts a couch photo → confirm: compression in devtools, Storage upload, item doc `aiStatus=pending → done`, `aiTags` includes `sofa`. Charity X gets a wishlist-match notification.
 7. Charity X opens map → couch pin within radius → expresses interest. Verify rules block other charity ids.

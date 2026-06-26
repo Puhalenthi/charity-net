@@ -1,0 +1,71 @@
+# Cloud Build pipeline for the server — MANUAL FALLBACK ONLY.
+#
+# The normal deploy uses Cloud Run's "Continuously deploy from a repository"
+# GitHub integration, which builds `server/Dockerfile` directly and does NOT use
+# this file (see docs/DEPLOY-FIRST-TIME.md Phase J). Runtime env vars + secrets
+# live on the Cloud Run service there, not here.
+#
+# This file is only invoked by `pnpm run deploy:server:manual`
+# (`gcloud builds submit --config cloudbuild.yaml .`) for an ad-hoc build from a
+# working tree. Its substitution variables (override on the command line):
+#   _REGION           — Cloud Run + Artifact Registry region (default europe-west1)
+#   _SERVICE          — Cloud Run service name      (default charity-net-api)
+#   _AR_REPO          — Artifact Registry repo name (default charity-net)
+#   _ALLOWED_ORIGINS  — CORS allowed origins        (default https://$PROJECT_ID.web.app)
+#   _STORAGE_BUCKET   — Firebase Storage bucket     (default $PROJECT_ID.appspot.com)
+
+substitutions:
+  _REGION: europe-west1
+  _SERVICE: charity-net-api
+  _AR_REPO: charity-net
+  _ALLOWED_ORIGINS: ''
+  _STORAGE_BUCKET: ''
+
+options:
+  logging: CLOUD_LOGGING_ONLY
+  machineType: E2_HIGHCPU_8
+
+timeout: 1500s
+
+steps:
+  - id: build
+    name: gcr.io/cloud-builders/docker
+    args:
+      - build
+      - --file=server/Dockerfile
+      - --tag=${_REGION}-docker.pkg.dev/$PROJECT_ID/${_AR_REPO}/${_SERVICE}:$SHORT_SHA
+      - --tag=${_REGION}-docker.pkg.dev/$PROJECT_ID/${_AR_REPO}/${_SERVICE}:latest
+      - .
+
+  - id: push
+    name: gcr.io/cloud-builders/docker
+    waitFor: [build]
+    args:
+      - push
+      - --all-tags
+      - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_AR_REPO}/${_SERVICE}
+
+  - id: deploy
+    name: gcr.io/google.com/cloudsdktool/cloud-sdk:slim
+    waitFor: [push]
+    entrypoint: bash
+    args:
+      - -ceu
+      - |
+        # Fall back to sensible defaults when the optional substitutions are blank.
+        ALLOWED_ORIGINS="${_ALLOWED_ORIGINS:-https://$PROJECT_ID.web.app}"
+        STORAGE_BUCKET="${_STORAGE_BUCKET:-$PROJECT_ID.appspot.com}"
+
+        gcloud run deploy ${_SERVICE} \
+          --image=${_REGION}-docker.pkg.dev/$PROJECT_ID/${_AR_REPO}/${_SERVICE}:$SHORT_SHA \
+          --region=${_REGION} \
+          --platform=managed \
+          --allow-unauthenticated \
+          --min-instances=1 \
+          --concurrency=40 \
+          --set-secrets=OPENAI_API_KEY=openai-key:latest,GOOGLE_MAPS_SERVER_KEY=gmaps-server-key:latest,JOB_SECRET=cron-job-secret:latest \
+          --set-env-vars=FIREBASE_PROJECT_ID=$PROJECT_ID,FIREBASE_STORAGE_BUCKET=$$STORAGE_BUCKET,ALLOWED_ORIGINS=$$ALLOWED_ORIGINS
+
+images:
+  - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_AR_REPO}/${_SERVICE}:$SHORT_SHA
+  - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_AR_REPO}/${_SERVICE}:latest

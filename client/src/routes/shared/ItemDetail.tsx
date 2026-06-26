@@ -76,7 +76,7 @@ export function ItemDetailPage() {
   }
 
   async function openChat() {
-    if (!user || !charity || !claims?.charityId) return;
+    if (!item || !user || !charity || !claims?.charityId) return;
     const threadId = await ensureThread({
       item,
       charityId: claims.charityId,

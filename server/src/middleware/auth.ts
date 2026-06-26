@@ -2,13 +2,19 @@ import type { NextFunction, Request, Response } from 'express';
 import { auth } from '../db/admin.js';
 import type { CustomClaims } from '@charity-net/shared';
 
-declare module 'express-serve-static-core' {
-  interface Request {
-    user?: {
-      uid: string;
-      email?: string;
-      claims: CustomClaims;
-    };
+// Augment the global Express namespace rather than the 'express-serve-static-core'
+// module: under pnpm's strict layout that package isn't directly resolvable from
+// here, so a `declare module` augmentation silently fails to merge and `req.user`
+// appears to not exist. `Express.Request` is resolution-independent.
+declare global {
+  namespace Express {
+    interface Request {
+      user?: {
+        uid: string;
+        email?: string;
+        claims: CustomClaims;
+      };
+    }
   }
 }
 

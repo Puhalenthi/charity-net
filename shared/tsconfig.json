@@ -5,7 +5,11 @@
     "rootDir": "./src",
     "module": "ESNext",
     "moduleResolution": "Bundler",
-    "composite": false
+    "composite": false,
+    // Type-check (not bundle) against the DOM lib so `fetch` and `URL` — globals
+    // on browsers, React Native, and Node 18+ — are known. Types only; adds no
+    // runtime dependency, keeping this package platform-agnostic.
+    "lib": ["ES2022", "DOM"]
   },
   "include": ["src/**/*"]
 }

@@ -5,7 +5,14 @@
     "rootDir": "./src",
     "module": "ESNext",
     "moduleResolution": "Bundler",
-    "types": ["node"]
+    "types": ["node"],
+    // The server is an app, not a library — it doesn't ship .d.ts files, and
+    // emitting them triggers TS2742 portability errors on Express routers under
+    // pnpm's nested node_modules layout.
+    "declaration": false,
+    // Express always populates matched route params (req.params.id on '/:id'),
+    // so the base config's noUncheckedIndexedAccess only forces noise-y `!`s here.
+    "noUncheckedIndexedAccess": false
   },
   "include": ["src/**/*"]
 }

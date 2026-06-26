@@ -48,6 +48,7 @@ export function WishlistPage() {
   }
 
   async function save() {
+    if (!charity) return;
     setLoading(true);
     try {
       await getApi().updateWishlist(charity.id, {

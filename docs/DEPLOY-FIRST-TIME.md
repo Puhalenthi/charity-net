@@ -195,11 +195,10 @@ command line.
    **Set up with Cloud Build**.
 3. **Repository provider**: **GitHub** → authenticate → pick your `charity-net`
    repository → **Next**.
-4. **Branch**: `^main$`.
-5. **Build type**: **Dockerfile**. Set the **Dockerfile path** to
-   `/server/Dockerfile`. (The build runs from the repo root, which is what this
-   Dockerfile expects — leave the source/context location at the default root.)
-   → **Save**.
+4. **Branch**: `^master$` (this repo's default branch is `master`, not `main`).
+5. **Build type**: **Dockerfile**. Set the **Dockerfile path** to `/Dockerfile`
+   (it lives at the repo **root** — this monorepo build needs the root as its
+   context so it can see `pnpm-workspace.yaml` and `shared/`). → **Save**.
 
 ### J.2 — Configure the service
 

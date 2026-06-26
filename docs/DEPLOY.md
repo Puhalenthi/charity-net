@@ -4,7 +4,7 @@
 
 | Change | How it ships |
 |---|---|
-| Anything under `server/**` or `shared/**` | `git push origin main` — Cloud Run's GitHub integration rebuilds `server/Dockerfile` and rolls out a new Cloud Run revision automatically. |
+| Anything under `server/**` or `shared/**` | `git push origin master` — Cloud Run's GitHub integration rebuilds the root `Dockerfile` and rolls out a new Cloud Run revision automatically. |
 | Anything under `client/**`, `firestore.rules`, `firestore.indexes.json`, `storage.rules`, `functions/**` | Run `pnpm deploy` locally (alias for `pnpm deploy:client`). |
 | Both at once | Same: `git push` for the server, `pnpm deploy` for the client. They're independent. |
 
@@ -49,7 +49,7 @@ The client only needs the Firebase web config (`VITE_FIREBASE_*`) and the Google
 
 The Cloud Run service `charity-net-api` is set up with **Continuously deploy from
 a repository**. On every push to `main`, Cloud Run (via Cloud Build under the
-hood) builds `server/Dockerfile` from the repo root, stores the image in Artifact
+hood) builds the root `Dockerfile` from the repo root, stores the image in Artifact
 Registry, and rolls out a new revision. Runtime env vars and secrets are set on
 the service itself (Cloud Run → service → **Variables & Secrets**), not in a
 build file.

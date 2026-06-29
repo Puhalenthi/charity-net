@@ -1,5 +1,5 @@
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { Heart, MapPin, Inbox, Bell, User2, ListChecks, ImagePlus, LogOut } from 'lucide-react';
+import { Heart, MapPin, Inbox, Bell, User2, ListChecks, ImagePlus, LogOut, Settings } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { Button } from '@/components/ui/button';
 import { cn, initials } from '@/lib/utils';
@@ -75,6 +75,11 @@ export function AppLayout() {
                   </Avatar>
                   <span className="hidden lg:inline text-sm">{user.displayName}</span>
                 </Link>
+                <Button variant="ghost" size="icon" asChild>
+                  <Link to="/settings" aria-label="Settings">
+                    <Settings className="h-4 w-4" />
+                  </Link>
+                </Button>
                 <Button
                   variant="ghost"
                   size="icon"

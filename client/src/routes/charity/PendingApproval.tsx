@@ -17,8 +17,8 @@ export function PendingApprovalPage() {
         </CardHeader>
         <CardContent className="space-y-3">
           <p className="text-sm text-muted-foreground">
-            {charity?.name ?? 'Your application'} is pending admin approval. You'll get an email and an
-            in-app notification the moment we've checked things over.
+            {charity?.name ?? 'Your application'} is pending admin approval. You'll get an in-app
+            notification the moment we've checked things over.
           </p>
           <p className="text-xs text-muted-foreground">
             Already approved? Refresh your session below to pick up the change.

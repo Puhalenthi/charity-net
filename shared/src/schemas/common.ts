@@ -23,7 +23,6 @@ export const ImageSchema = z.object({
 export type Image = z.infer<typeof ImageSchema>;
 
 export const NotificationPrefsSchema = z.object({
-  email: z.boolean().default(true),
   inApp: z.boolean().default(true),
 });
 export type NotificationPrefs = z.infer<typeof NotificationPrefsSchema>;

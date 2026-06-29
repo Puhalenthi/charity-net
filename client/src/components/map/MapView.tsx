@@ -97,7 +97,7 @@ function MarkerCluster({
   if (!pin) return null;
   return (
     <InfoWindow position={pin.position} onCloseClick={() => setOpenId(null)}>
-      <div className="min-w-[200px]">{renderPopup(openId)}</div>
+      <div className="map-popup min-w-[200px]">{renderPopup(openId)}</div>
     </InfoWindow>
   );
 }

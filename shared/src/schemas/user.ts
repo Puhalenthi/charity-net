@@ -19,7 +19,7 @@ export const UserSchema = z.object({
     .min(MIN_SEARCH_RADIUS_KM)
     .max(MAX_SEARCH_RADIUS_KM)
     .default(DEFAULT_SEARCH_RADIUS_KM),
-  notificationPrefs: NotificationPrefsSchema.default({ email: true, inApp: true }),
+  notificationPrefs: NotificationPrefsSchema.default({ inApp: true }),
   charityId: z.string().optional(),
   createdAt: TimestampMillisSchema,
   updatedAt: TimestampMillisSchema,

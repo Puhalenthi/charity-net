@@ -22,6 +22,7 @@ import { InboxPage } from '@/routes/shared/Inbox';
 import { ThreadPage } from '@/routes/shared/ThreadView';
 import { NotificationsPage } from '@/routes/shared/Notifications';
 import { ProfilePage } from '@/routes/shared/Profile';
+import { SettingsPage } from '@/routes/shared/Settings';
 
 import { AdminApprovalsPage } from '@/routes/admin/Approvals';
 
@@ -151,6 +152,14 @@ export default function App() {
           element={
             <RequireAuth>
               <ProfilePage />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/settings"
+          element={
+            <RequireAuth>
+              <SettingsPage />
             </RequireAuth>
           }
         />

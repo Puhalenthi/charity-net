@@ -26,13 +26,18 @@ export function createApp(): express.Express {
   app.use(generalLimiter);
 
   app.get('/healthz', (_req, res) => res.json({ ok: true }));
-  app.use('/auth', authRouter);
-  app.use('/me', meRouter);
-  app.use('/items', itemsRouter);
-  app.use('/charities', wishlistsRouter);
-  app.use('/admin', adminRouter);
-  app.use('/geocode', geocodeRouter);
-  app.use('/jobs', jobsRouter);
+
+  // Routes are served under /api to match the Firebase Hosting rewrite, which
+  // forwards the full `/api/**` path to this service unchanged.
+  const api = express.Router();
+  api.use('/auth', authRouter);
+  api.use('/me', meRouter);
+  api.use('/items', itemsRouter);
+  api.use('/charities', wishlistsRouter);
+  api.use('/admin', adminRouter);
+  api.use('/geocode', geocodeRouter);
+  api.use('/jobs', jobsRouter);
+  app.use('/api', api);
 
   app.use(notFoundHandler);
   app.use(errorHandler);

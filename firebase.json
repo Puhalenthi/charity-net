@@ -6,7 +6,7 @@
       {
         "source": "/api/**",
         "run": {
-          "serviceId": "charity-net-api",
+          "serviceId": "charity-net",
           "region": "europe-west1"
         }
       },

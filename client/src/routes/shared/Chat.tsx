@@ -173,6 +173,7 @@ function ThreadPane({ threadId }: { threadId: string }) {
         <Input
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
+          maxLength={2000}
           placeholder="Type a message…"
           onKeyDown={(e) => {
             if (e.key === 'Enter' && !e.shiftKey) {

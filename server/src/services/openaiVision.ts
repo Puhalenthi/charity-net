@@ -67,12 +67,18 @@ list, place it in keywords instead. Mark safety flags true only when clearly vis
 // Storage emulator (127.0.0.1:9199) — and even in prod, inlining keeps the image
 // private and avoids signed-URL expiry. So we download the bytes ourselves (the
 // server *can* reach the bucket/emulator) and pass a base64 data URL instead.
+const MAX_INLINE_IMAGE_BYTES = 15 * 1024 * 1024;
+
 async function toImageUrl(url: string): Promise<string> {
   try {
     const res = await fetch(url);
     if (!res.ok) return url;
-    const buf = Buffer.from(await res.arrayBuffer());
     const contentType = res.headers.get('content-type') ?? 'image/jpeg';
+    const length = Number(res.headers.get('content-length') ?? 0);
+    // Only inline actual images of sane size; anything else falls through as-is.
+    if (!contentType.startsWith('image/') || length > MAX_INLINE_IMAGE_BYTES) return url;
+    const buf = Buffer.from(await res.arrayBuffer());
+    if (buf.byteLength > MAX_INLINE_IMAGE_BYTES) return url;
     return `data:${contentType};base64,${buf.toString('base64')}`;
   } catch {
     return url; // fall back to the raw URL (works for public prod URLs)

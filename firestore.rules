@@ -98,20 +98,28 @@ service cloud.firestore {
     // ---- threads ----
     match /threads/{threadId} {
       allow read: if signedIn() && uid() in resource.data.participants;
-      // Threads are created the first time a charity sends a message into a per-item thread;
-      // the deterministic id is `${itemId}_${charityId}`.
+      // Threads are created the first time either side opens a per-item chat;
+      // the deterministic id is `${itemId}_${charityId}`. Every denormalised
+      // field must be provably derived from the real item/charity docs so
+      // nobody can spoof participants or spam threads at arbitrary users.
       allow create: if signedIn()
         && request.resource.data.id == threadId
-        && uid() in request.resource.data.participants
-        && request.resource.data.participants.size() == 2
+        && threadId == request.resource.data.itemId + '_' + request.resource.data.charityId
+        && request.resource.data.ownerUid
+             == get(/databases/$(database)/documents/items/$(request.resource.data.itemId)).data.ownerUid
+        && request.resource.data.charityOwnerUid
+             == get(/databases/$(database)/documents/charities/$(request.resource.data.charityId)).data.ownerUid
+        && request.resource.data.participants
+             == [request.resource.data.ownerUid, request.resource.data.charityOwnerUid]
+        && request.resource.data.closed == false
         && (
           // poster opening it
-          isPerson()
-            && get(/databases/$(database)/documents/items/$(request.resource.data.itemId)).data.ownerUid == uid()
+          (isPerson() && uid() == request.resource.data.ownerUid)
           ||
           // charity opening it
-          isCharity()
+          (isCharity()
             && claimedCharityId() == request.resource.data.charityId
+            && uid() == request.resource.data.charityOwnerUid)
         );
       // A participant may keep the denormalised chat summary current from the
       // client (so chat works without the messaging Cloud Function) and hide the

@@ -17,9 +17,11 @@ export function createApp(): express.Express {
   const app = express();
   app.disable('x-powered-by');
   app.use(helmet());
-  const allowed = env().ALLOWED_ORIGINS
-    ? env().ALLOWED_ORIGINS.split(',').map((s) => s.trim()).filter(Boolean)
-    : true;
+  const origins = env().ALLOWED_ORIGINS.split(',').map((s) => s.trim()).filter(Boolean);
+  // In production the client is served from the same origin (Firebase Hosting
+  // rewrites /api/**), so with no explicit allowlist we fail CLOSED rather than
+  // reflect any Origin. Dev stays open for the Vite proxy / emulator UI.
+  const allowed = origins.length > 0 ? origins : env().NODE_ENV === 'production' ? [] : true;
   app.use(cors({ origin: allowed, credentials: true }));
   app.use(express.json({ limit: '1mb' }));
   app.use(authMiddleware);

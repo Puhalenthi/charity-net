@@ -148,16 +148,28 @@ function MiniHeader({ icon: Icon, title }: { icon: React.ComponentType<{ classNa
 
 /* --------------------------- Marquee ---------------------------- */
 function Marquee() {
-  const row = [...CATEGORIES, ...CATEGORIES];
+  // Two identical copies; the track animates exactly -50% (one copy's width),
+  // so the loop restart is pixel-identical — no visible snap. Each copy carries
+  // its own trailing gap (pr-3) so the seam between copies matches the gap-3
+  // spacing inside them.
+  const copy = (hidden: boolean) => (
+    <div aria-hidden={hidden} className="flex shrink-0 items-center gap-3 pr-3">
+      {CATEGORIES.map((c) => (
+        <span
+          key={c}
+          className="whitespace-nowrap rounded-full border bg-background px-4 py-2 text-sm font-medium text-muted-foreground transition-colors duration-200 hover:border-primary/60 hover:bg-primary/10 hover:text-primary"
+        >
+          {c}
+        </span>
+      ))}
+    </div>
+  );
   return (
     <section className="border-y bg-muted/30 py-6">
       <div className="marquee overflow-hidden">
-        <div className="marquee-track gap-3">
-          {row.map((c, i) => (
-            <span key={i} className="whitespace-nowrap rounded-full border bg-background px-4 py-2 text-sm font-medium text-muted-foreground">
-              {c}
-            </span>
-          ))}
+        <div className="marquee-track">
+          {copy(false)}
+          {copy(true)}
         </div>
       </div>
     </section>
@@ -269,8 +281,8 @@ function Features() {
       <div className="mt-14 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
         {FEATURES.map((f, i) => (
           <Reveal key={f.title} variant="up" delay={(i % 3) * 90}>
-            <div className="group h-full rounded-3xl border bg-card p-6 shadow-sm transition-all duration-300 hover:-translate-y-1.5 hover:shadow-xl">
-              <div className="grid h-11 w-11 place-items-center rounded-2xl bg-primary/10 text-primary transition-transform duration-300 group-hover:scale-110">
+            <div className="group h-full rounded-3xl border bg-card p-6 shadow-sm transition-all duration-300 hover:-translate-y-1.5 hover:border-primary/40 hover:bg-primary/[0.03] hover:shadow-xl hover:shadow-primary/10">
+              <div className="grid h-11 w-11 place-items-center rounded-2xl bg-primary/10 text-primary transition-all duration-300 group-hover:scale-110 group-hover:bg-primary group-hover:text-primary-foreground">
                 <f.icon className="h-5 w-5" />
               </div>
               <div className="mt-4 text-lg font-semibold">{f.title}</div>

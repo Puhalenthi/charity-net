@@ -1,4 +1,4 @@
-import { geohashBoundsForRadius, distanceKm } from '@charity-net/shared';
+import { geohashBoundsForRadius, distanceKm, normalizeTag } from '@charity-net/shared';
 import type { Item } from '@charity-net/shared';
 import { COL } from '../db/collections.js';
 import { notifyCharityWishlistMatch } from './notifier.js';
@@ -26,16 +26,26 @@ export async function matchWishlistsForItem(item: Item): Promise<{ matched: numb
       .get();
     if (wishlistSnap.empty) continue;
 
+    // Custom (non-vocabulary) wishlist tags and keywords can only ever match
+    // the AI's free-form keywords, so compare the union of both fields.
+    // normalizeTag on BOTH sides: stored wishlist tags are already hyphenated
+    // by it, while AI keywords keep their spaces ("purple sofa" vs "purple-sofa").
+    const itemTokens = new Set(
+      [...item.aiTags, ...item.aiKeywords].map(normalizeTag),
+    );
     let bestScore = 0;
     let bestNotes: string | undefined;
     for (const doc of wishlistSnap.docs) {
       const data = doc.data() as {
         tags?: string[];
+        keywords?: string[];
         categories?: string[];
         notes?: string;
       };
-      const wishTags = new Set((data.tags ?? []).map((t) => t.toLowerCase()));
-      const overlap = item.aiTags.filter((t) => wishTags.has(t.toLowerCase())).length;
+      const wishTokens = new Set(
+        [...(data.tags ?? []), ...(data.keywords ?? [])].map(normalizeTag),
+      );
+      const overlap = [...wishTokens].filter((t) => itemTokens.has(t)).length;
       const catBonus =
         item.aiCategory && data.categories?.includes(item.aiCategory) ? 1 : 0;
       const score = overlap + catBonus;

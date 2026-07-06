@@ -21,7 +21,3 @@ export function geohashBoundsForRadius(
 export function distanceKm(a: LatLng, b: LatLng): number {
   return distanceBetween([a.lat, a.lng], [b.lat, b.lng]);
 }
-
-export function withinRadius(center: LatLng, point: LatLng, radiusKm: number): boolean {
-  return distanceKm(center, point) <= radiusKm;
-}

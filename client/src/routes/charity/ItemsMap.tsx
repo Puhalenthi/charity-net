@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { collection, getDocs } from 'firebase/firestore';
-import { DEFAULT_SEARCH_RADIUS_KM, MAX_SEARCH_RADIUS_KM, MIN_SEARCH_RADIUS_KM } from '@charity-net/shared';
+import { DEFAULT_SEARCH_RADIUS_KM, MAX_SEARCH_RADIUS_KM, MIN_SEARCH_RADIUS_KM, normalizeTag } from '@charity-net/shared';
 import type { Item } from '@charity-net/shared';
 import { db } from '@/lib/firebase';
 import { useAuth } from '@/lib/auth';
@@ -14,15 +14,18 @@ import { Sparkles } from 'lucide-react';
 import { getBrowserLocation } from '@/lib/geolocation';
 import { formatRelative } from '@/lib/utils';
 
-type WishRow = { tags?: string[]; categories?: string[]; active?: boolean };
+type WishRow = { tags?: string[]; keywords?: string[]; categories?: string[]; active?: boolean };
 
-/** Mirrors the server matcher: tag overlap OR category hit against active rows. */
+/** Mirrors the server matcher: tag/keyword overlap OR category hit against active rows.
+ * normalizeTag on both sides — stored wishlist tags are hyphenated, AI keywords aren't. */
 function makeMatcher(rows: WishRow[]) {
   const active = rows.filter((r) => r.active !== false);
-  const tags = new Set(active.flatMap((r) => (r.tags ?? []).map((t) => t.toLowerCase())));
+  const tokens = new Set(
+    active.flatMap((r) => [...(r.tags ?? []), ...(r.keywords ?? [])].map(normalizeTag)),
+  );
   const cats = new Set(active.flatMap((r) => r.categories ?? []));
   return (item: Item) =>
-    item.aiTags.some((t) => tags.has(t.toLowerCase())) ||
+    [...item.aiTags, ...item.aiKeywords].some((t) => tokens.has(normalizeTag(t))) ||
     (item.aiCategory ? cats.has(item.aiCategory) : false);
 }
 

@@ -25,7 +25,9 @@ authRouter.post('/complete-signup', requireAuth, async (req, res, next) => {
       const location = body.defaultLocation
         ? { ...body.defaultLocation, geohash: geohashFor(body.defaultLocation) }
         : undefined;
-      await userRef.set({
+      // create() (not set) so a concurrent duplicate request atomically fails
+      // instead of both racing past the exists-check above.
+      await userRef.create({
         uid,
         role: 'person',
         displayName: body.displayName,
@@ -76,7 +78,7 @@ authRouter.post('/complete-signup', requireAuth, async (req, res, next) => {
       createdAt: now,
       updatedAt: now,
     });
-    await userRef.set({
+    await userRef.create({
       uid,
       role: 'charity',
       displayName: body.displayName,
@@ -116,6 +118,11 @@ authRouter.post('/complete-signup', requireAuth, async (req, res, next) => {
       },
     });
   } catch (err) {
+    // Firestore ALREADY_EXISTS from create() — the concurrent-duplicate case.
+    if ((err as { code?: unknown }).code === 6) {
+      next(new HttpError(409, 'already_signed_up', 'User already completed signup'));
+      return;
+    }
     next(err);
   }
 });

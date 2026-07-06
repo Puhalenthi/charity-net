@@ -15,6 +15,7 @@ import { HttpError } from '../middleware/errorHandler.js';
 import {
   interestLimiter,
   itemCreateLimiter,
+  scanLimiter,
 } from '../middleware/rateLimit.js';
 import { scanWithRetry } from '../services/openaiVision.js';
 import { matchWishlistsForItem } from '../services/wishlistMatcher.js';
@@ -27,6 +28,38 @@ import {
 
 export const itemsRouter = Router();
 
+/**
+ * The AI pipeline downloads each image URL server-side, so a forged URL would
+ * be an SSRF hole (internal probing from inside Cloud Run). Only accept URLs
+ * that point at our own Storage bucket (or its emulator) AND at an object
+ * inside the caller's own items/<uid>/ folder.
+ */
+function assertImagesOwnedBy(uid: string, images: Array<{ path: string; url: string }>): void {
+  const emulatorHost = process.env.FIREBASE_STORAGE_EMULATOR_HOST;
+  const allowedHosts = new Set(
+    ['firebasestorage.googleapis.com', emulatorHost, '127.0.0.1:9199', 'localhost:9199'].filter(
+      Boolean,
+    ) as string[],
+  );
+  for (const img of images) {
+    if (!img.path.startsWith(`items/${uid}/`)) {
+      throw new HttpError(400, 'invalid_image', 'Image path must be inside your own folder');
+    }
+    let url: URL;
+    try {
+      url = new URL(img.url);
+    } catch {
+      throw new HttpError(400, 'invalid_image', 'Malformed image URL');
+    }
+    const marker = '/o/';
+    const idx = url.pathname.indexOf(marker);
+    const object = idx >= 0 ? decodeURIComponent(url.pathname.slice(idx + marker.length)) : '';
+    if (!allowedHosts.has(url.host) || object !== img.path) {
+      throw new HttpError(400, 'invalid_image', 'Image URL must point at app storage');
+    }
+  }
+}
+
 itemsRouter.post(
   '/',
   requireAuth,
@@ -36,6 +69,7 @@ itemsRouter.post(
     try {
       const body = CreateItemRequestSchema.parse(req.body);
       const uid = req.user!.uid;
+      assertImagesOwnedBy(uid, body.images);
       const now = Date.now();
       const itemRef = COL.items().doc();
       const itemId = itemRef.id;
@@ -70,7 +104,7 @@ itemsRouter.post(
   },
 );
 
-itemsRouter.post('/:id/scan', requireAuth, async (req, res, next) => {
+itemsRouter.post('/:id/scan', requireAuth, scanLimiter, async (req, res, next) => {
   try {
     const itemRef = COL.items().doc(req.params.id);
     const snap = await itemRef.get();

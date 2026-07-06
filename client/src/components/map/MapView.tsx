@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { APIProvider, AdvancedMarker, InfoWindow, Map, useMap } from '@vis.gl/react-google-maps';
 import { MarkerClusterer } from '@googlemaps/markerclusterer';
 import type { LatLng } from '@charity-net/shared';
-import { jitterLocation } from '@charity-net/shared';
+import { COORD_JITTER_METERS, jitterLocation } from '@charity-net/shared';
 
 export type MapPin = {
   id: string;
@@ -25,7 +25,6 @@ type MapViewProps = {
   radiusKm: number;
   pins: MapPin[];
   renderPopup?: (id: string) => React.ReactNode;
-  pinColor?: string;
 };
 
 export function MapView(props: MapViewProps) {
@@ -47,7 +46,7 @@ export function MapView(props: MapViewProps) {
           disableDefaultUI={false}
           gestureHandling="greedy"
         >
-          <MarkerCluster pins={props.pins} renderPopup={props.renderPopup} pinColor={props.pinColor} />
+          <MarkerCluster pins={props.pins} renderPopup={props.renderPopup} />
         </Map>
       </div>
     </APIProvider>
@@ -57,11 +56,9 @@ export function MapView(props: MapViewProps) {
 function MarkerCluster({
   pins,
   renderPopup,
-  pinColor,
 }: {
   pins: MapPin[];
   renderPopup?: (id: string) => React.ReactNode;
-  pinColor?: string;
 }) {
   const map = useMap();
   const [openId, setOpenId] = useState<string | null>(null);
@@ -73,7 +70,7 @@ function MarkerCluster({
       pins.map((p) => ({
         ...p,
         position: p.jitter
-          ? jitterLocation(p.position, 100, p.jitterSeed ?? p.id)
+          ? jitterLocation(p.position, COORD_JITTER_METERS, p.jitterSeed ?? p.id)
           : p.position,
       })),
     [pins],

@@ -1,3 +1,4 @@
+import { timingSafeEqual } from 'node:crypto';
 import { Router } from 'express';
 import type { Item } from '@charity-net/shared';
 import { COL } from '../db/collections.js';
@@ -8,7 +9,11 @@ export const jobsRouter = Router();
 
 function authorizeJob(req: import('express').Request): boolean {
   const provided = req.headers['x-job-secret'];
-  return typeof provided === 'string' && provided === env().JOB_SECRET;
+  if (typeof provided !== 'string') return false;
+  const expected = Buffer.from(env().JOB_SECRET);
+  const given = Buffer.from(provided);
+  // Constant-time compare so the secret can't be guessed byte-by-byte.
+  return given.length === expected.length && timingSafeEqual(given, expected);
 }
 
 jobsRouter.post('/expire-interest-windows', async (req, res, next) => {

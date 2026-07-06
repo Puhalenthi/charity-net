@@ -11,7 +11,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/components/ui/toast';
 import { cn } from '@/lib/utils';
-import { Trash2, Plus, ChevronDown } from 'lucide-react';
+import { Trash2, Plus, ChevronDown, X } from 'lucide-react';
 
 type Row = {
   id?: string;
@@ -142,6 +142,7 @@ export function WishlistPage() {
                     value={row.tags}
                     onChange={(v) => update(idx, { tags: v })}
                     searchable
+                    allowCustom
                   />
                 </div>
                 <div className="space-y-1">
@@ -186,22 +187,76 @@ function TokenPicker({
   value,
   onChange,
   searchable,
+  allowCustom,
 }: {
   options: string[];
   value: string[];
   onChange: (v: string[]) => void;
   searchable?: boolean;
+  allowCustom?: boolean;
 }) {
   const [filter, setFilter] = useState('');
   const filtered = searchable
     ? options.filter((o) => o.toLowerCase().includes(filter.toLowerCase())).slice(0, 60)
     : options;
+  // Values the user typed themselves — they aren't in the vocabulary, so
+  // render them as their own removable chips or they'd be invisible.
+  const custom = value.filter((v) => !options.includes(v));
+  const trimmed = filter.trim();
+  const canAddCustom =
+    !!allowCustom &&
+    trimmed.length > 0 &&
+    !options.some((o) => o.toLowerCase() === trimmed.toLowerCase()) &&
+    !value.some((v) => v.toLowerCase() === trimmed.toLowerCase());
+
+  function addCustom() {
+    if (!canAddCustom) return;
+    onChange([...value, trimmed]);
+    setFilter('');
+  }
+
   return (
     <div className="space-y-2">
       {searchable && (
-        <Input value={filter} onChange={(e) => setFilter(e.target.value)} placeholder="Search…" />
+        <Input
+          value={filter}
+          onChange={(e) => setFilter(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              addCustom();
+            }
+          }}
+          placeholder={allowCustom ? 'Search or type your own…' : 'Search…'}
+        />
+      )}
+      {custom.length > 0 && (
+        <div className="flex flex-wrap gap-1.5">
+          {custom.map((v) => (
+            <button
+              key={v}
+              type="button"
+              onClick={() => onChange(value.filter((x) => x !== v))}
+              title="Remove"
+              className="inline-flex items-center gap-1 rounded-full border border-dashed border-primary bg-primary/10 px-3 py-1 text-xs font-medium text-primary transition-colors hover:border-destructive hover:bg-destructive/10 hover:text-destructive"
+            >
+              {v}
+              <X className="h-3 w-3" />
+            </button>
+          ))}
+        </div>
       )}
       <div className="flex flex-wrap gap-1.5 max-h-44 overflow-auto p-1">
+        {canAddCustom && (
+          <button
+            type="button"
+            onClick={addCustom}
+            className="rounded-full border border-dashed px-3 py-1 text-xs text-muted-foreground transition-colors hover:border-primary hover:bg-primary/10 hover:text-primary"
+          >
+            <Plus className="mr-1 inline h-3 w-3" />
+            Add “{trimmed}”
+          </button>
+        )}
         {filtered.map((opt) => {
           const active = value.includes(opt);
           return (
@@ -212,8 +267,10 @@ function TokenPicker({
                 onChange(active ? value.filter((v) => v !== opt) : [...value, opt])
               }
               className={
-                'rounded-full border px-3 py-1 text-xs ' +
-                (active ? 'bg-primary text-primary-foreground border-primary' : 'hover:bg-accent')
+                'rounded-full border px-3 py-1 text-xs transition-colors duration-150 ' +
+                (active
+                  ? 'bg-primary text-primary-foreground border-primary hover:bg-primary/85'
+                  : 'hover:border-primary/60 hover:bg-primary/10 hover:text-primary')
               }
             >
               {opt}

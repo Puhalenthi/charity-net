@@ -3,9 +3,12 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/lib/auth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { PasswordInput } from '@/components/ui/password-input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/components/ui/toast';
+import { AuthTabs } from '@/components/AuthTabs';
+import { authErrorMessage } from '@/lib/authErrors';
 
 export function SignupPage() {
   const [email, setEmail] = useState('');
@@ -20,9 +23,10 @@ export function SignupPage() {
     setLoading(true);
     try {
       await signUpEmail(email, password);
+      toast({ title: 'Account created', description: 'Now finish setting up your profile.', variant: 'success' });
       navigate('/complete-signup');
     } catch (err) {
-      toast({ title: 'Sign up failed', description: (err as Error).message, variant: 'destructive' });
+      toast({ title: 'Sign up failed', description: authErrorMessage(err), variant: 'destructive' });
     } finally {
       setLoading(false);
     }
@@ -31,8 +35,14 @@ export function SignupPage() {
   return (
     <div className="min-h-screen grid place-items-center p-4">
       <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle>Create your account</CardTitle>
+        <CardHeader className="space-y-4">
+          <AuthTabs active="signup" />
+          <div>
+            <CardTitle>Sign up</CardTitle>
+            <p className="mt-1 text-sm text-muted-foreground">
+              New here? Create an account to get started.
+            </p>
+          </div>
         </CardHeader>
         <CardContent className="space-y-4">
           <form onSubmit={handle} className="space-y-3">
@@ -42,7 +52,7 @@ export function SignupPage() {
             </div>
             <div className="space-y-1">
               <Label htmlFor="password">Password</Label>
-              <Input id="password" type="password" required minLength={8} value={password} onChange={(e) => setPassword(e.target.value)} />
+              <PasswordInput id="password" required minLength={8} value={password} onChange={(e) => setPassword(e.target.value)} />
               <p className="text-xs text-muted-foreground">At least 8 characters.</p>
             </div>
             <Button type="submit" disabled={loading} className="w-full">
@@ -59,9 +69,10 @@ export function SignupPage() {
             onClick={async () => {
               try {
                 await signInGoogle();
+                toast({ title: 'Account created', variant: 'success' });
                 navigate('/complete-signup');
               } catch (err) {
-                toast({ title: 'Google sign up failed', description: (err as Error).message, variant: 'destructive' });
+                toast({ title: 'Google sign up failed', description: authErrorMessage(err), variant: 'destructive' });
               }
             }}
           >

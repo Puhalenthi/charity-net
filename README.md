@@ -65,9 +65,9 @@ Demo accounts the seed creates:
 
 | Email | Password | Role |
 |---|---|---|
-| `person@example.com` | `password123` | person |
-| `charity@example.com` | `password123` | charity (pre-approved) |
-| `admin@example.com` | `password123` | admin |
+| `person@charitynet.com` | `password123` | person |
+| `charity@charitynet.com` | `password123` | charity (pre-approved) |
+| `admin@charitynet.com` | `password123` | admin |
 
 ## Test plan
 

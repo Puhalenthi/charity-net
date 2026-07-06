@@ -18,8 +18,7 @@ import { ItemsFeedPage } from '@/routes/charity/ItemsFeed';
 import { ItemsMapPage } from '@/routes/charity/ItemsMap';
 import { WishlistPage } from '@/routes/charity/Wishlist';
 
-import { InboxPage } from '@/routes/shared/Inbox';
-import { ThreadPage } from '@/routes/shared/ThreadView';
+import { ChatPage } from '@/routes/shared/Chat';
 import { NotificationsPage } from '@/routes/shared/Notifications';
 import { ProfilePage } from '@/routes/shared/Profile';
 import { SettingsPage } from '@/routes/shared/Settings';
@@ -27,12 +26,19 @@ import { SettingsPage } from '@/routes/shared/Settings';
 import { AdminApprovalsPage } from '@/routes/admin/Approvals';
 
 function HomeRouter() {
-  const { user, claims } = useAuth();
-  if (!user || !claims) return <LandingPage />;
-  if (claims.role === 'admin') return <Navigate to="/admin/approvals" replace />;
-  if (claims.role === 'charity' && !claims.approved)
+  const { firebaseUser, user, claims, loading } = useAuth();
+  // Still resolving the session (e.g. right after sign-in) — don't flash the
+  // landing page, which looks like the login "bounced" back to the homepage.
+  if (loading) return <div className="p-8 text-muted-foreground">Loading…</div>;
+  if (!firebaseUser) return <LandingPage />;
+  // Admins are routed off their claims alone.
+  if (claims?.role === 'admin') return <Navigate to="/admin/approvals" replace />;
+  // Signed in with Firebase but no profile yet (abandoned onboarding) — send
+  // them to finish signing up rather than to the public landing page.
+  if (!user) return <Navigate to="/complete-signup" replace />;
+  if (claims?.role === 'charity' && !claims.approved)
     return <Navigate to="/pending-approval" replace />;
-  if (claims.role === 'charity') return <CharityHome />;
+  if (claims?.role === 'charity') return <CharityHome />;
   return <PersonHome />;
 }
 
@@ -127,7 +133,7 @@ export default function App() {
           path="/inbox"
           element={
             <RequireAuth>
-              <InboxPage />
+              <ChatPage />
             </RequireAuth>
           }
         />
@@ -135,7 +141,7 @@ export default function App() {
           path="/inbox/:threadId"
           element={
             <RequireAuth>
-              <ThreadPage />
+              <ChatPage />
             </RequireAuth>
           }
         />

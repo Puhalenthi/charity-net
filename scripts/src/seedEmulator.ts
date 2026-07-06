@@ -25,10 +25,11 @@ async function ensureUser(email: string, password: string) {
 }
 
 async function main() {
-  const personEmail = 'person@example.com';
-  const charityEmail = 'charity@example.com';
-  const adminEmail = 'admin@example.com';
+  const personEmail = 'person@charitynet.com';
+  const charityEmail = 'charity@charitynet.com';
+  const adminEmail = 'admin@charitynet.com';
 
+  const now = Date.now();
   const person = await ensureUser(personEmail, 'password123');
   const charity = await ensureUser(charityEmail, 'password123');
   const admin = await ensureUser(adminEmail, 'password123');
@@ -36,9 +37,22 @@ async function main() {
   await auth.setCustomUserClaims(person.uid, { role: 'person', approved: true });
   await auth.setCustomUserClaims(admin.uid, { role: 'admin', approved: true });
 
+  // The admin needs a `users/` doc too — without it `/api/me` returns
+  // { user: null }, and the client's HomeRouter falls back to the landing page
+  // on sign-in (looking like login "does nothing" / bounces to the homepage).
+  await db.collection('users').doc(admin.uid).set({
+    uid: admin.uid,
+    role: 'admin',
+    displayName: 'Platform Admin',
+    email: adminEmail,
+    searchRadiusKm: 10,
+    notificationPrefs: { email: true, inApp: true },
+    createdAt: now,
+    updatedAt: now,
+  });
+
   const charityRef = db.collection('charities').doc();
   const charityLoc = { lat: 52.52, lng: 13.405 };
-  const now = Date.now();
   await charityRef.set({
     id: charityRef.id,
     name: 'Greenwood Helping Hands',

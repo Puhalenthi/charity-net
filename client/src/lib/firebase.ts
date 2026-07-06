@@ -1,6 +1,6 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth, connectAuthEmulator } from 'firebase/auth';
-import { getFirestore, connectFirestoreEmulator } from 'firebase/firestore';
+import { getFirestore, initializeFirestore, connectFirestoreEmulator } from 'firebase/firestore';
 import { getStorage, connectStorageEmulator } from 'firebase/storage';
 
 const config = {
@@ -12,12 +12,20 @@ const config = {
   appId: import.meta.env.VITE_FIREBASE_APP_ID,
 };
 
+const useEmulators = import.meta.env.VITE_USE_EMULATORS === 'true';
+
 export const app = initializeApp(config);
 export const auth = getAuth(app);
-export const db = getFirestore(app);
+// The Firestore WebChannel streaming transport intermittently throws
+// "INTERNAL ASSERTION FAILED: Unexpected state" against the local emulator.
+// Forcing long-polling uses plain HTTP and sidesteps it. Production keeps the
+// default (faster) transport, where WebChannel is reliable.
+export const db = useEmulators
+  ? initializeFirestore(app, { experimentalForceLongPolling: true })
+  : getFirestore(app);
 export const storage = getStorage(app);
 
-if (import.meta.env.VITE_USE_EMULATORS === 'true') {
+if (useEmulators) {
   connectAuthEmulator(auth, 'http://127.0.0.1:9099', { disableWarnings: true });
   connectFirestoreEmulator(db, '127.0.0.1', 8081);
   connectStorageEmulator(storage, '127.0.0.1', 9199);

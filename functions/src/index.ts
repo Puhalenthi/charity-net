@@ -42,7 +42,8 @@ export const onMessageCreated = onDocumentCreated(
         body: (message.text ?? '').slice(0, 200),
         threadId: event.params.threadId,
         read: false,
-        createdAt: FieldValue.serverTimestamp(),
+        // Epoch millis to match NotificationSchema + the client's formatRelative.
+        createdAt: Date.now(),
       });
     }
   },

@@ -11,6 +11,13 @@ export type MapPin = {
   thumbnailUrl?: string;
   jitter?: boolean;
   jitterSeed?: string;
+  /** When true the pin is drawn purple (a wishlist match), otherwise red. */
+  match?: boolean;
+};
+
+const MARKER_ICON = {
+  match: 'https://maps.google.com/mapfiles/ms/icons/purple-dot.png',
+  default: 'https://maps.google.com/mapfiles/ms/icons/red-dot.png',
 };
 
 type MapViewProps = {
@@ -81,6 +88,7 @@ function MarkerCluster({
       const marker = new google.maps.Marker({
         position: p.position,
         title: p.title,
+        icon: p.match ? MARKER_ICON.match : MARKER_ICON.default,
       });
       marker.addListener('click', () => setOpenId(p.id));
       return marker;

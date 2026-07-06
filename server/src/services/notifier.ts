@@ -1,6 +1,5 @@
 import type { Item, NotificationType } from '@charity-net/shared';
 import { COL } from '../db/collections.js';
-import { FieldValue } from '../db/admin.js';
 
 // Notifications are in-app only (the "Alerts" feed). There is no email channel.
 
@@ -25,7 +24,10 @@ export async function writeInAppNotification(opts: WriteOpts): Promise<void> {
     threadId: opts.threadId ?? null,
     charityId: opts.charityId ?? null,
     read: false,
-    createdAt: FieldValue.serverTimestamp(),
+    // Epoch millis to match NotificationSchema (TimestampMillisSchema) and the
+    // client's formatRelative — a Firestore serverTimestamp() would deserialise
+    // to a Timestamp object and render as a nonsense "19900d ago".
+    createdAt: Date.now(),
   });
 }
 

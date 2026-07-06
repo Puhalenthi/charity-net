@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MAX_IMAGES_PER_ITEM, geohashFor } from '@charity-net/shared';
 import { useAuth } from '@/lib/auth';
@@ -11,6 +11,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/components/ui/toast';
+import { cn } from '@/lib/utils';
 import { Trash2, Upload } from 'lucide-react';
 
 export function PostItemPage() {
@@ -21,22 +22,46 @@ export function PostItemPage() {
   const [description, setDescription] = useState('');
   const [files, setFiles] = useState<File[]>([]);
   const [previews, setPreviews] = useState<string[]>([]);
+  const [dragOver, setDragOver] = useState(false);
   const [locationQuery, setLocationQuery] = useState('');
   const [resolved, setResolved] = useState<{ lat: number; lng: number; city?: string; postalCode?: string } | null>(null);
   const [loading, setLoading] = useState(false);
 
-  function addFiles(list: FileList | null) {
-    if (!list) return;
-    const next = [...files, ...Array.from(list)].slice(0, MAX_IMAGES_PER_ITEM);
-    setFiles(next);
-    setPreviews(next.map((f) => URL.createObjectURL(f)));
+  // Derive previews from files and revoke old object URLs so we don't leak them.
+  useEffect(() => {
+    const urls = files.map((f) => URL.createObjectURL(f));
+    setPreviews(urls);
+    return () => urls.forEach((u) => URL.revokeObjectURL(u));
+  }, [files]);
+
+  function addFiles(incoming: Iterable<File> | null | undefined) {
+    if (!incoming) return;
+    const images = Array.from(incoming).filter((f) => f.type.startsWith('image/'));
+    if (images.length === 0) return;
+    setFiles((prev) => [...prev, ...images].slice(0, MAX_IMAGES_PER_ITEM));
   }
 
   function removeAt(idx: number) {
-    const next = files.filter((_, i) => i !== idx);
-    setFiles(next);
-    setPreviews(next.map((f) => URL.createObjectURL(f)));
+    setFiles((prev) => prev.filter((_, i) => i !== idx));
   }
+
+  // Paste an image straight from the clipboard (e.g. a screenshot) anywhere on
+  // the page — unless you're typing into a text field.
+  useEffect(() => {
+    function onPaste(e: ClipboardEvent) {
+      const target = e.target as HTMLElement | null;
+      if (target && /^(INPUT|TEXTAREA)$/.test(target.tagName)) return;
+      const imgs = Array.from(e.clipboardData?.files ?? []).filter((f) => f.type.startsWith('image/'));
+      if (imgs.length > 0) {
+        e.preventDefault();
+        addFiles(imgs);
+        toast({ title: 'Photo added from clipboard', variant: 'success' });
+      }
+    }
+    window.addEventListener('paste', onPaste);
+    return () => window.removeEventListener('paste', onPaste);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   async function handleSubmit() {
     if (!user) return;
@@ -77,10 +102,28 @@ export function PostItemPage() {
       <Card>
         <CardHeader><CardTitle>Photos</CardTitle></CardHeader>
         <CardContent className="space-y-3">
-          <label className="block">
-            <div className="rounded-lg border-2 border-dashed p-6 text-center cursor-pointer hover:bg-accent/30">
+          <label
+            className="block"
+            onDragOver={(e) => {
+              e.preventDefault();
+              setDragOver(true);
+            }}
+            onDragLeave={() => setDragOver(false)}
+            onDrop={(e) => {
+              e.preventDefault();
+              setDragOver(false);
+              addFiles(e.dataTransfer.files);
+            }}
+          >
+            <div
+              className={cn(
+                'rounded-lg border-2 border-dashed p-6 text-center cursor-pointer transition-colors',
+                dragOver ? 'border-primary bg-primary/5' : 'hover:bg-accent/30',
+              )}
+            >
               <Upload className="h-6 w-6 mx-auto mb-2 text-muted-foreground" />
-              <div className="text-sm">Click to choose photos (up to {MAX_IMAGES_PER_ITEM})</div>
+              <div className="text-sm font-medium">Drag &amp; drop, paste, or click to choose photos</div>
+              <div className="text-xs text-muted-foreground mt-0.5">Up to {MAX_IMAGES_PER_ITEM} images</div>
               <input
                 type="file"
                 multiple

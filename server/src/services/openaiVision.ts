@@ -63,10 +63,27 @@ Pick the single best category. Tags MUST come from the vocabulary list. If a use
 list, place it in keywords instead. Mark safety flags true only when clearly visible.`;
 }
 
+// OpenAI fetches `image_url` from its own servers, which cannot reach the local
+// Storage emulator (127.0.0.1:9199) — and even in prod, inlining keeps the image
+// private and avoids signed-URL expiry. So we download the bytes ourselves (the
+// server *can* reach the bucket/emulator) and pass a base64 data URL instead.
+async function toImageUrl(url: string): Promise<string> {
+  try {
+    const res = await fetch(url);
+    if (!res.ok) return url;
+    const buf = Buffer.from(await res.arrayBuffer());
+    const contentType = res.headers.get('content-type') ?? 'image/jpeg';
+    return `data:${contentType};base64,${buf.toString('base64')}`;
+  } catch {
+    return url; // fall back to the raw URL (works for public prod URLs)
+  }
+}
+
 export async function scanItemImages(imageUrls: string[]): Promise<ScanResult> {
   if (!env().AI_ENABLED) return fallbackResult();
   const client = getClient();
   const userPrompt = buildUserPrompt();
+  const inlined = await Promise.all(imageUrls.map(toImageUrl));
 
   const response = await client.chat.completions.create({
     model: env().OPENAI_MODEL,
@@ -78,7 +95,7 @@ export async function scanItemImages(imageUrls: string[]): Promise<ScanResult> {
         role: 'user',
         content: [
           { type: 'text', text: userPrompt },
-          ...imageUrls.map((url) => ({ type: 'image_url' as const, image_url: { url } })),
+          ...inlined.map((url) => ({ type: 'image_url' as const, image_url: { url } })),
         ],
       },
     ],

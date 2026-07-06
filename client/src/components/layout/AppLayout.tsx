@@ -1,6 +1,8 @@
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { Heart, MapPin, Inbox, Bell, User2, ListChecks, ImagePlus, LogOut, Settings } from 'lucide-react';
+import { Heart, MapPin, MessageSquare, Bell, ListChecks, ImagePlus, LogOut, Settings } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
+import { useNotifications } from '@/hooks/useNotifications';
+import { useInbox } from '@/hooks/useInbox';
 import { Button } from '@/components/ui/button';
 import { cn, initials } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -12,7 +14,7 @@ const personNav: NavItem[] = [
   { to: '/post', label: 'Post item', icon: ImagePlus },
   { to: '/charities', label: 'Charities', icon: MapPin },
   { to: '/my-items', label: 'My items', icon: ListChecks },
-  { to: '/inbox', label: 'Inbox', icon: Inbox },
+  { to: '/inbox', label: 'Chats', icon: MessageSquare },
   { to: '/notifications', label: 'Alerts', icon: Bell },
 ];
 
@@ -21,7 +23,7 @@ const charityNav: NavItem[] = [
   { to: '/feed', label: 'Feed', icon: ListChecks },
   { to: '/map', label: 'Map', icon: MapPin },
   { to: '/wishlist', label: 'Wishlist', icon: Heart },
-  { to: '/inbox', label: 'Inbox', icon: Inbox },
+  { to: '/inbox', label: 'Chats', icon: MessageSquare },
   { to: '/notifications', label: 'Alerts', icon: Bell },
 ];
 
@@ -31,9 +33,15 @@ export function AppLayout() {
   const { user, claims, signOut } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const { unread: alertCount } = useNotifications();
+  const threads = useInbox();
+  const chatCount = user ? threads.reduce((sum, t) => sum + (t.unread[user.uid] ?? 0), 0) : 0;
 
   const nav =
     claims?.role === 'admin' ? adminNav : claims?.role === 'charity' ? charityNav : personNav;
+
+  const badgeFor = (to: string): number =>
+    to === '/notifications' ? alertCount : to === '/inbox' ? chatCount : 0;
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -50,17 +58,23 @@ export function AppLayout() {
               nav.map((n) => {
                 const Icon = n.icon;
                 const active = location.pathname === n.to;
+                const badge = badgeFor(n.to);
                 return (
                   <Link
                     key={n.to}
                     to={n.to}
                     className={cn(
-                      'inline-flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium',
+                      'relative inline-flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium',
                       active ? 'bg-accent text-accent-foreground' : 'hover:bg-accent/70',
                     )}
                   >
                     <Icon className="h-4 w-4" />
                     {n.label}
+                    {badge > 0 && (
+                      <span className="ml-0.5 grid min-w-[1.25rem] place-items-center rounded-full bg-primary px-1.5 py-0.5 text-[10px] font-semibold leading-none text-primary-foreground">
+                        {badge > 99 ? '99+' : badge}
+                      </span>
+                    )}
                   </Link>
                 );
               })}
@@ -106,7 +120,15 @@ export function AppLayout() {
       </header>
 
       <main className="flex-1">
-        <Outlet />
+        {/* Animate in per top-level section (e.g. "/inbox"), NOT per full path —
+            otherwise sub-navigation like /inbox → /inbox/:id would remount the
+            whole subtree and thrash its Firestore listeners. */}
+        <div
+          key={location.pathname.split('/')[1] || 'home'}
+          className="animate-in fade-in slide-in-from-bottom-2 duration-500"
+        >
+          <Outlet />
+        </div>
       </main>
 
       {/* Mobile bottom nav */}
@@ -116,17 +138,23 @@ export function AppLayout() {
             {nav.slice(0, 5).map((n) => {
               const Icon = n.icon;
               const active = location.pathname === n.to;
+              const badge = badgeFor(n.to);
               return (
                 <Link
                   key={n.to}
                   to={n.to}
                   className={cn(
-                    'flex flex-col items-center gap-1 py-3 text-xs',
+                    'relative flex flex-col items-center gap-1 py-3 text-xs',
                     active ? 'text-primary' : 'text-muted-foreground',
                   )}
                 >
                   <Icon className="h-4 w-4" />
                   {n.label}
+                  {badge > 0 && (
+                    <span className="absolute right-[22%] top-2 grid min-w-[1.1rem] place-items-center rounded-full bg-primary px-1 text-[10px] font-semibold leading-tight text-primary-foreground">
+                      {badge > 99 ? '99+' : badge}
+                    </span>
+                  )}
                 </Link>
               );
             })}

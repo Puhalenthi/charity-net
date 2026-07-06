@@ -7,7 +7,7 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "start": "node dist/index.js",
-    "dev": "tsx watch src/index.ts",
+    "dev": "tsx watch --env-file=.env src/index.ts",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "lint": "echo 'server: no lint configured yet' && exit 0",
     "test": "echo 'server: no tests yet' && exit 0"

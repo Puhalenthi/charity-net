@@ -1,0 +1,44 @@
+# Files that should NOT be uploaded to Cloud Build.
+# The Dockerfile only needs the root config + shared/ + server/.
+
+.git
+.gitignore
+.gitattributes
+.github
+
+# Client app — not needed for the server image
+client
+
+# Local-dev tooling
+scripts
+.emulator-data
+.firebase
+firebase-debug.log
+
+# Docs
+docs
+README.md
+LICENSE
+
+# Editor / OS
+.vscode
+.idea
+.DS_Store
+
+# Build outputs from any local builds
+**/node_modules
+**/dist
+**/build
+**/*.tsbuildinfo
+
+# Env files — never ship to remote builders
+**/.env
+**/.env.*
+!**/.env.example
+
+# pnpm store
+.pnpm-store
+
+# Vite ephemera
+**/.vite
+**/vite.config.*.timestamp-*

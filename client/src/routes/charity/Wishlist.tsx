@@ -10,7 +10,8 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/components/ui/toast';
-import { Trash2, Plus } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { Trash2, Plus, ChevronDown } from 'lucide-react';
 
 type Row = {
   id?: string;
@@ -19,6 +20,7 @@ type Row = {
   categories: string[];
   notes?: string;
   active: boolean;
+  _collapsed?: boolean; // UI-only; not persisted
 };
 
 export function WishlistPage() {
@@ -46,6 +48,13 @@ export function WishlistPage() {
   function remove(idx: number) {
     setRows((prev) => prev.filter((_, i) => i !== idx));
   }
+  function toggle(idx: number) {
+    setRows((prev) => prev.map((r, i) => (i === idx ? { ...r, _collapsed: !r._collapsed } : r)));
+  }
+  const allCollapsed = rows.length > 0 && rows.every((r) => r._collapsed);
+  function setAllCollapsed(collapsed: boolean) {
+    setRows((prev) => prev.map((r) => ({ ...r, _collapsed: collapsed })));
+  }
 
   async function save() {
     if (!charity) return;
@@ -60,6 +69,8 @@ export function WishlistPage() {
           active: r.active,
         })),
       });
+      // Condense every row into its compact summary once saved.
+      setRows((prev) => prev.map((r) => ({ ...r, _collapsed: true })));
       toast({ title: 'Wishlist saved', variant: 'success' });
     } catch (err) {
       toast({ title: 'Could not save', description: (err as Error).message, variant: 'destructive' });
@@ -75,7 +86,14 @@ export function WishlistPage() {
           <h1 className="text-2xl font-bold">Wishlist</h1>
           <p className="text-muted-foreground">When something nearby matches one of these rows, we'll notify you.</p>
         </div>
-        <Button onClick={addRow}><Plus className="mr-2 h-4 w-4" /> Add row</Button>
+        <div className="flex gap-2">
+          {rows.length > 0 && (
+            <Button variant="outline" onClick={() => setAllCollapsed(!allCollapsed)}>
+              {allCollapsed ? 'Expand all' : 'Collapse all'}
+            </Button>
+          )}
+          <Button onClick={addRow}><Plus className="mr-2 h-4 w-4" /> Add row</Button>
+        </div>
       </div>
       {rows.length === 0 ? (
         <div className="rounded-lg border bg-muted/30 p-8 text-center text-sm text-muted-foreground">
@@ -85,13 +103,30 @@ export function WishlistPage() {
         <div className="space-y-3">
           {rows.map((row, idx) => (
             <Card key={idx}>
-              <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle className="text-base">Row {idx + 1}</CardTitle>
-                <Button variant="ghost" size="icon" onClick={() => remove(idx)}>
-                  <Trash2 className="h-4 w-4" />
-                </Button>
+              <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 py-4">
+                <button
+                  type="button"
+                  onClick={() => toggle(idx)}
+                  className="flex min-w-0 flex-1 items-center gap-2 text-left"
+                >
+                  <ChevronDown className={cn('h-4 w-4 shrink-0 transition-transform', row._collapsed && '-rotate-90')} />
+                  <CardTitle className="text-base shrink-0">Row {idx + 1}</CardTitle>
+                  {row._collapsed && (
+                    <span className="truncate text-sm text-muted-foreground">
+                      {summarize(row)}
+                    </span>
+                  )}
+                </button>
+                <div className="flex items-center gap-1">
+                  {!row.active && (
+                    <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground">Paused</span>
+                  )}
+                  <Button variant="ghost" size="icon" onClick={() => remove(idx)}>
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
               </CardHeader>
-              <CardContent className="space-y-3">
+              <CardContent className={cn('space-y-3', row._collapsed && 'hidden')}>
                 <div className="space-y-1">
                   <Label>Categories</Label>
                   <TokenPicker
@@ -136,6 +171,14 @@ export function WishlistPage() {
       </div>
     </div>
   );
+}
+
+function summarize(row: Row): string {
+  const parts = [...row.categories, ...row.tags];
+  if (parts.length === 0) return 'Empty row — click to edit';
+  const shown = parts.slice(0, 4).join(', ');
+  const extra = parts.length > 4 ? ` +${parts.length - 4}` : '';
+  return shown + extra;
 }
 
 function TokenPicker({

@@ -3,9 +3,12 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/lib/auth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { PasswordInput } from '@/components/ui/password-input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/components/ui/toast';
+import { AuthTabs } from '@/components/AuthTabs';
+import { authErrorMessage } from '@/lib/authErrors';
 
 export function LoginPage() {
   const [email, setEmail] = useState('');
@@ -20,9 +23,10 @@ export function LoginPage() {
     setLoading(true);
     try {
       await signInEmail(email, password);
+      toast({ title: 'Signed in', description: `Welcome back, ${email}.`, variant: 'success' });
       navigate('/');
     } catch (err) {
-      toast({ title: 'Sign in failed', description: (err as Error).message, variant: 'destructive' });
+      toast({ title: 'Sign in failed', description: authErrorMessage(err), variant: 'destructive' });
     } finally {
       setLoading(false);
     }
@@ -31,8 +35,14 @@ export function LoginPage() {
   return (
     <div className="min-h-screen grid place-items-center p-4">
       <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle>Welcome back</CardTitle>
+        <CardHeader className="space-y-4">
+          <AuthTabs active="login" />
+          <div>
+            <CardTitle>Sign in</CardTitle>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Welcome back — sign in to your existing account.
+            </p>
+          </div>
         </CardHeader>
         <CardContent className="space-y-4">
           <form onSubmit={handle} className="space-y-3">
@@ -42,7 +52,7 @@ export function LoginPage() {
             </div>
             <div className="space-y-1">
               <Label htmlFor="password">Password</Label>
-              <Input id="password" type="password" required value={password} onChange={(e) => setPassword(e.target.value)} />
+              <PasswordInput id="password" required value={password} onChange={(e) => setPassword(e.target.value)} />
             </div>
             <Button type="submit" disabled={loading} className="w-full">
               {loading ? 'Signing in…' : 'Sign in'}
@@ -58,9 +68,10 @@ export function LoginPage() {
             onClick={async () => {
               try {
                 await signInGoogle();
+                toast({ title: 'Signed in', variant: 'success' });
                 navigate('/');
               } catch (err) {
-                toast({ title: 'Google sign in failed', description: (err as Error).message, variant: 'destructive' });
+                toast({ title: 'Google sign in failed', description: authErrorMessage(err), variant: 'destructive' });
               }
             }}
           >

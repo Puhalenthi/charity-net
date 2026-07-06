@@ -1,0 +1,16 @@
+# Keep the Docker build context small and free of secrets / build junk.
+# The Dockerfile only needs: root package.json, pnpm-workspace.yaml,
+# pnpm-lock.yaml, tsconfig.base.json, and the shared/ + server/ sources.
+**/node_modules
+**/dist
+**/.env
+**/.env.*
+.git
+.emulator-data
+*.log
+
+# Not needed to build the server image:
+client
+functions
+scripts
+docs

@@ -17,6 +17,9 @@ export const ThreadSchema = z.object({
     })
     .optional(),
   unread: z.record(z.string(), z.number().int().nonnegative()).default({}),
+  // Participants who have "deleted" (hidden) this chat from their own inbox. A
+  // new message clears the list so the conversation resurfaces for both.
+  deletedFor: z.array(z.string()).default([]),
   closed: z.boolean().default(false),
   createdAt: TimestampMillisSchema,
 });

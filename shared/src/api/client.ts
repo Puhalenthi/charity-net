@@ -40,7 +40,13 @@ export function createApiClient(opts: ApiClientOptions) {
     query?: Record<string, string | number | undefined>,
   ): Promise<T> {
     const token = await opts.getAuthToken();
-    const url = new URL(joinUrl(opts.baseUrl, path));
+    // baseUrl may be origin-relative (e.g. '/api' behind the Vite proxy or the
+    // Firebase Hosting rewrite); new URL() rejects relative URLs unless given a
+    // base, so resolve against the page origin when one exists (browsers).
+    // Non-browser callers (RN, Node) have no location and must pass an absolute
+    // baseUrl — and an absolute baseUrl makes the base argument a no-op.
+    const pageHref = (globalThis as { location?: { href?: string } }).location?.href;
+    const url = new URL(joinUrl(opts.baseUrl, path), pageHref);
     if (query) {
       for (const [k, v] of Object.entries(query)) {
         if (v !== undefined) url.searchParams.set(k, String(v));

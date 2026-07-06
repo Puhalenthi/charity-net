@@ -2,12 +2,14 @@ import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Heart, ListChecks, MapPin } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
+import { Reveal } from '@/components/Reveal';
 
 export function CharityHome() {
   const { charity, user } = useAuth();
   return (
     <div className="container py-6 sm:py-8 space-y-8">
-      <div className="rounded-2xl bg-gradient-to-br from-primary/10 to-accent/40 p-6 sm:p-10 border">
+      <Reveal variant="scale" className="relative overflow-hidden rounded-2xl border bg-gradient-to-br from-primary/10 to-accent/40 p-6 sm:p-10">
+        <div className="aurora absolute inset-0 -z-10 opacity-40" />
         <h1 className="text-2xl sm:text-3xl font-bold">Welcome back, {charity?.name ?? user?.displayName}.</h1>
         <p className="text-muted-foreground mt-1 max-w-xl">
           See what's available nearby, set what you're looking for, and message givers directly.
@@ -17,7 +19,7 @@ export function CharityHome() {
           <Button asChild variant="outline" size="lg"><Link to="/map"><MapPin className="mr-2 h-4 w-4" /> Open map</Link></Button>
           <Button asChild variant="outline" size="lg"><Link to="/wishlist"><Heart className="mr-2 h-4 w-4" /> Edit wishlist</Link></Button>
         </div>
-      </div>
+      </Reveal>
     </div>
   );
 }

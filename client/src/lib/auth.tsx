@@ -82,6 +82,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         });
         return;
       }
+      // Mark loading while we fetch the profile so consumers (e.g. HomeRouter)
+      // wait instead of briefly rendering the signed-out landing page.
+      setState((s) => ({ ...s, firebaseUser: fbUser, loading: true }));
       await refresh();
     });
     return () => unsub();

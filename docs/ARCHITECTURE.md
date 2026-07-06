@@ -90,7 +90,7 @@ Run inside the emulator first.
 
 1. Sign up as Person A → confirm `users/{uid}` doc + claim `role=person, approved=true`.
 2. Sign up as Charity X → confirm `charities/{id}` doc in `pending`; UI shows pending screen.
-3. `pnpm --filter @charity-net/scripts set-admin admin@example.com` → log in, see `/admin/approvals`.
+3. `pnpm --filter @charity-net/scripts set-admin admin@charitynet.com` → log in, see `/admin/approvals`.
 4. Approve Charity X → status flips, claim updates, in-app notification appears, audit row written.
 5. Charity X sets a wishlist row with tag `sofa`.
 6. Person A posts a couch photo → confirm: compression in devtools, Storage upload, item doc `aiStatus=pending → done`, `aiTags` includes `sofa`. Charity X gets a wishlist-match notification.

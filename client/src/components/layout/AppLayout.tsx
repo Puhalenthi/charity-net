@@ -1,5 +1,5 @@
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { Heart, MapPin, MessageSquare, Bell, ListChecks, ImagePlus, LogOut, Settings } from 'lucide-react';
+import { Heart, MapPin, MessageSquare, Bell, ListChecks, ImagePlus, LogOut, Settings, Users } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { useNotifications } from '@/hooks/useNotifications';
 import { useInbox } from '@/hooks/useInbox';
@@ -27,7 +27,10 @@ const charityNav: NavItem[] = [
   { to: '/notifications', label: 'Alerts', icon: Bell },
 ];
 
-const adminNav: NavItem[] = [{ to: '/admin/approvals', label: 'Approvals', icon: ListChecks }];
+const adminNav: NavItem[] = [
+  { to: '/admin/approvals', label: 'Approvals', icon: ListChecks },
+  { to: '/admin/users', label: 'Users', icon: Users },
+];
 
 export function AppLayout() {
   const { user, claims, signOut } = useAuth();

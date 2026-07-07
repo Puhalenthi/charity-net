@@ -176,7 +176,7 @@ export function WishlistPage() {
 
 function summarize(row: Row): string {
   const parts = [...row.categories, ...row.tags];
-  if (parts.length === 0) return 'Empty row — click to edit';
+  if (parts.length === 0) return 'Empty row (click to edit)';
   const shown = parts.slice(0, 4).join(', ');
   const extra = parts.length > 4 ? ` +${parts.length - 4}` : '';
   return shown + extra;

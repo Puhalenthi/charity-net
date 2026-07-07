@@ -1,4 +1,5 @@
 import type {
+  AdminSetPasswordRequest,
   ApproveCharityRequest,
   CompleteSignupRequest,
   CreateItemRequest,
@@ -12,6 +13,32 @@ import type { Item } from '../schemas/item.js';
 import type { User } from '../schemas/user.js';
 
 export type AuthTokenGetter = () => Promise<string | null>;
+
+/** One row of the admin account directory (auth record joined with profile). */
+export type AdminUserRecord = {
+  uid: string;
+  email: string | null;
+  displayName: string | null;
+  role: 'person' | 'charity' | 'admin';
+  approved: boolean;
+  charityId: string | null;
+  charityName: string | null;
+  providers: string[];
+  disabled: boolean;
+  hasProfile: boolean;
+  createdAt: number | null;
+  lastSignInAt: number | null;
+};
+
+export type AdminCharityRecord = {
+  id: string;
+  name: string;
+  status: string;
+  ownerUid: string;
+  ownerEmail: string | null;
+  city: string | null;
+  createdAt: number | null;
+};
 
 export type ApiClientOptions = {
   baseUrl: string;
@@ -111,6 +138,15 @@ export function createApiClient(opts: ApiClientOptions) {
     },
     pendingCharities() {
       return request<{ charities: Charity[] }>('GET', '/admin/charities/pending');
+    },
+    adminUsers() {
+      return request<{ users: AdminUserRecord[]; charities: AdminCharityRecord[] }>(
+        'GET',
+        '/admin/users',
+      );
+    },
+    adminSetUserPassword(uid: string, body: AdminSetPasswordRequest) {
+      return request<{ ok: true }>('POST', `/admin/users/${uid}/password`, body);
     },
     geocode(q: string) {
       return request<{ lat: number; lng: number; city?: string; postalCode?: string }>(

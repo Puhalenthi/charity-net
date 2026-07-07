@@ -39,3 +39,23 @@ export function requireAdmin(req: Request, res: Response, next: NextFunction): v
   }
   next();
 }
+
+const RECENT_LOGIN_MAX_AGE_MS = 5 * 60 * 1000;
+
+/**
+ * Gate for credential-sensitive endpoints: the caller must have re-entered
+ * their password within the last few minutes. Client-side reauthentication
+ * (reauthenticateWithCredential) mints a token with a fresh auth_time, which
+ * is what we check — a long-lived session alone is not enough.
+ */
+export function requireRecentLogin(req: Request, res: Response, next: NextFunction): void {
+  const authTime = req.user?.authTime ?? 0;
+  if (Date.now() - authTime * 1000 > RECENT_LOGIN_MAX_AGE_MS) {
+    res.status(403).json({
+      code: 'recent_login_required',
+      message: 'Confirm your password again to continue',
+    });
+    return;
+  }
+  next();
+}

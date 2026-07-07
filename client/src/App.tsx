@@ -24,6 +24,7 @@ import { ProfilePage } from '@/routes/shared/Profile';
 import { SettingsPage } from '@/routes/shared/Settings';
 
 import { AdminApprovalsPage } from '@/routes/admin/Approvals';
+import { AdminUsersPage } from '@/routes/admin/Users';
 
 function HomeRouter() {
   const { firebaseUser, user, claims, loading } = useAuth();
@@ -33,9 +34,11 @@ function HomeRouter() {
   if (!firebaseUser) return <LandingPage />;
   // Admins are routed off their claims alone.
   if (claims?.role === 'admin') return <Navigate to="/admin/approvals" replace />;
-  // Signed in with Firebase but no profile yet (abandoned onboarding) — send
-  // them to finish signing up rather than to the public landing page.
-  if (!user) return <Navigate to="/complete-signup" replace />;
+  // Signed in with Firebase but no profile: show the landing page, never a
+  // forced redirect. A stale session (or a profile fetch that merely failed)
+  // must not hijack the home URL into the signup flow; the landing page shows
+  // a finish-signup banner when the profile is definitively missing.
+  if (!user) return <LandingPage />;
   if (claims?.role === 'charity' && !claims.approved)
     return <Navigate to="/pending-approval" replace />;
   if (claims?.role === 'charity') return <CharityHome />;
@@ -176,6 +179,14 @@ export default function App() {
           element={
             <RequireAuth role="admin">
               <AdminApprovalsPage />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/admin/users"
+          element={
+            <RequireAuth role="admin">
+              <AdminUsersPage />
             </RequireAuth>
           }
         />

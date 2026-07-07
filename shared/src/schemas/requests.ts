@@ -65,4 +65,9 @@ export const RejectCharityRequestSchema = z.object({
 });
 export type RejectCharityRequest = z.infer<typeof RejectCharityRequestSchema>;
 
+export const AdminSetPasswordRequestSchema = z.object({
+  password: z.string().min(8).max(128),
+});
+export type AdminSetPasswordRequest = z.infer<typeof AdminSetPasswordRequestSchema>;
+
 export const RoleSchema = z.enum(USER_ROLES);

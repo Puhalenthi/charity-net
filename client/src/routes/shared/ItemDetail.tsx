@@ -180,7 +180,7 @@ export function ItemDetailPage() {
             </CardHeader>
             <CardContent className="space-y-2">
               {interests.length === 0 ? (
-                <p className="text-sm text-muted-foreground">No one yet — your item just went live.</p>
+                <p className="text-sm text-muted-foreground">No one yet. Your item just went live.</p>
               ) : (
                 interests.map((i) => (
                   <div key={i.charityId} className="rounded-lg border p-3 flex items-center justify-between gap-2">

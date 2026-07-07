@@ -40,7 +40,7 @@ export function LoginPage() {
           <div>
             <CardTitle>Sign in</CardTitle>
             <p className="mt-1 text-sm text-muted-foreground">
-              Welcome back — sign in to your existing account.
+              Welcome back. Sign in to your account.
             </p>
           </div>
         </CardHeader>

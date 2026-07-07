@@ -10,11 +10,14 @@ import {
   ChevronDown,
   Recycle,
   ShieldCheck,
+  Armchair,
+  Check,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Reveal } from '@/components/Reveal';
 import { Shot } from '@/components/Shot';
 import { AnimatedNumber } from '@/components/AnimatedNumber';
+import { useAuth } from '@/lib/auth';
 
 const PHOTO = (id: string) => `https://images.unsplash.com/${id}?auto=format&fit=crop&w=1200&q=80`;
 
@@ -24,8 +27,20 @@ const CATEGORIES = [
 ];
 
 export function LandingPage() {
+  const { firebaseUser, user, profileStatus } = useAuth();
+  // Signed in but onboarding never finished: offer the way back in without
+  // hijacking the page (HomeRouter deliberately no longer force-redirects).
+  const showFinishSignup = Boolean(firebaseUser) && !user && profileStatus === 'missing';
   return (
     <div className="overflow-x-hidden">
+      {showFinishSignup && (
+        <div className="border-b bg-primary/10 px-4 py-2.5 text-center text-sm">
+          You're signed in but your account isn't set up yet.{' '}
+          <Link to="/complete-signup" className="font-semibold text-primary underline underline-offset-2">
+            Finish signup
+          </Link>
+        </div>
+      )}
       <Hero />
       <Marquee />
       <HowItWorks />
@@ -71,12 +86,11 @@ function Hero() {
             Give items a second life
           </Reveal>
           <Reveal as="h1" delay={80} className="text-5xl font-bold leading-[1.05] tracking-tight sm:text-6xl lg:text-7xl">
-            Everything you<br />give,<span className="text-gradient"> reimagined.</span>
+            Stuff you don't need.<br /><span className="text-gradient">People who do.</span>
           </Reveal>
           <Reveal as="p" delay={160} className="max-w-xl text-lg text-white/70">
-            Snap a photo of something you no longer need. Nearby charities see it on a live map and
-            reserve a pickup in seconds. No selling, no shipping — just a beautifully simple way to
-            do some good.
+            Take a photo of something you no longer use. Charities near you see it on a live map
+            and claim it for pickup. Nothing to sell and nothing to ship.
           </Reveal>
           <Reveal delay={240} className="flex flex-wrap gap-3">
             <Button asChild size="lg" className="group">
@@ -181,15 +195,15 @@ const STEPS = [
   {
     n: '01',
     title: 'Snap it.',
-    body: 'One photo is all it takes. Our AI reads the item, tags it, and checks it’s safe to share — before you even finish typing a title.',
+    body: 'One photo is enough. The app works out what the item is, tags it, and checks that it is safe to share before it goes live.',
     photo: PHOTO('photo-1555041469-a586c61ea9bc'),
     gradient: 'from-primary/30 to-sky-400/20',
     icon: ImagePlus,
   },
   {
     n: '02',
-    title: 'Matched, locally.',
-    body: 'Nearby charities get an instant alert when your item fits their wishlist. They see it on a map and reserve a pickup window.',
+    title: 'Matched nearby.',
+    body: 'Charities close to you get an alert when your item fits something on their wishlist. They see it on a map and reserve a pickup window.',
     photo: PHOTO('photo-1441986300917-64674bd600d8'),
     gradient: 'from-fuchsia-400/25 to-primary/20',
     icon: MapPin,
@@ -197,7 +211,7 @@ const STEPS = [
   {
     n: '03',
     title: 'Handed over.',
-    body: 'Chat to arrange the details, hand it off, and watch something you no longer needed change someone’s week.',
+    body: 'Chat to sort out timing, hand the item over, and it goes straight to someone who can use it.',
     photo: PHOTO('photo-1523381210434-271e8be1f52b'),
     gradient: 'from-amber-300/25 to-primary/20',
     icon: Heart,
@@ -208,8 +222,10 @@ function HowItWorks() {
   return (
     <section className="container space-y-24 py-24 sm:py-32">
       <Reveal className="mx-auto max-w-2xl text-center">
-        <h2 className="text-4xl font-bold tracking-tight sm:text-5xl">Good, made effortless.</h2>
-        <p className="mt-4 text-lg text-muted-foreground">Three taps from clutter to community.</p>
+        <h2 className="text-4xl font-bold tracking-tight sm:text-5xl">How it works</h2>
+        <p className="mt-4 text-lg text-muted-foreground">
+          From your spare room to a charity van in three steps.
+        </p>
       </Reveal>
 
       {STEPS.map((s, i) => (
@@ -262,21 +278,132 @@ function Stats() {
 }
 
 /* --------------------------- Features --------------------------- */
+
+/* Little in-card mockups, in the same style as the hero's floating cards. */
+function PostVisual() {
+  return (
+    <div className="flex h-full gap-2.5">
+      <div className="grid aspect-square h-full place-items-center rounded-lg bg-gradient-to-br from-primary/40 to-sky-400/30 text-primary">
+        <ImagePlus className="h-5 w-5 opacity-70" />
+      </div>
+      <div className="flex-1 space-y-1.5 py-1">
+        <div className="h-2 w-3/4 rounded bg-foreground/15" />
+        <div className="h-2 w-1/2 rounded bg-foreground/10" />
+        <span className="mt-1 inline-flex items-center gap-1 rounded-full bg-emerald-500/15 px-2 py-0.5 text-[10px] font-medium text-emerald-600 dark:text-emerald-400">
+          <Check className="h-3 w-3" /> Live
+        </span>
+      </div>
+    </div>
+  );
+}
+
+function MapVisual() {
+  return (
+    <div className="relative grid h-full grid-cols-4 gap-1">
+      {Array.from({ length: 8 }).map((_, i) => (
+        <div key={i} className="rounded-md bg-foreground/[0.06]" />
+      ))}
+      <span className="absolute left-[30%] top-[35%] h-2.5 w-2.5 rounded-full bg-primary ring-4 ring-primary/25" />
+      <span className="absolute left-[62%] top-[60%] h-2.5 w-2.5 rounded-full bg-[#ea4335] ring-4 ring-[#ea4335]/25" />
+      <span className="absolute left-[75%] top-[22%] h-2 w-2 rounded-full bg-[#a855f7] ring-4 ring-[#a855f7]/25" />
+    </div>
+  );
+}
+
+function MatchVisual() {
+  return (
+    <div className="flex h-full flex-col justify-center gap-2">
+      <div className="flex items-center gap-2 text-xs">
+        <span className="rounded-full border bg-background px-2.5 py-1 font-medium">Winter coat</span>
+        <Sparkles className="h-4 w-4 shrink-0 text-primary" />
+        <span className="rounded-full bg-primary px-2.5 py-1 font-medium text-primary-foreground">Warm clothing</span>
+      </div>
+      <div className="text-[10px] text-muted-foreground">Matched to a wishlist 1.2 km away</div>
+    </div>
+  );
+}
+
+function ChatVisual() {
+  return (
+    <div className="flex h-full flex-col justify-center gap-1.5 text-xs">
+      <div className="ml-auto w-3/4 rounded-2xl rounded-br-sm bg-primary px-3 py-1.5 text-primary-foreground">
+        Saturday at 10 works!
+      </div>
+      <div className="w-2/3 rounded-2xl rounded-bl-sm bg-foreground/10 px-3 py-1.5">See you then 👋</div>
+    </div>
+  );
+}
+
+function WasteVisual() {
+  return (
+    <div className="flex h-full items-center justify-center gap-3 text-muted-foreground">
+      <Armchair className="h-6 w-6" />
+      <ArrowRight className="h-4 w-4 text-primary" />
+      <Recycle className="h-6 w-6" />
+      <ArrowRight className="h-4 w-4 text-primary" />
+      <Heart className="h-6 w-6 text-primary" />
+    </div>
+  );
+}
+
+function VettedVisual() {
+  return (
+    <div className="flex h-full flex-col justify-center gap-1.5">
+      <div className="flex items-center gap-2 rounded-lg border bg-background px-2.5 py-1.5 text-xs shadow-sm">
+        <ShieldCheck className="h-3.5 w-3.5 shrink-0 text-emerald-500" /> Charity verified by an admin
+      </div>
+      <div className="flex items-center gap-2 rounded-lg border bg-background px-2.5 py-1.5 text-xs shadow-sm">
+        <ShieldCheck className="h-3.5 w-3.5 shrink-0 text-emerald-500" /> Photo checks passed
+      </div>
+    </div>
+  );
+}
+
 const FEATURES = [
-  { icon: ImagePlus, title: 'Post in seconds', body: 'A photo, a tap, and your item is in front of nearby charities.' },
-  { icon: MapPin, title: 'Live local map', body: 'See who’s nearby and exactly what they’re looking for right now.' },
-  { icon: Sparkles, title: 'Smart matching', body: 'AI scans your photos and matches them to real charity wishlists.' },
-  { icon: MessageCircle, title: 'Direct chat', body: 'Coordinate pickup right inside the app — no numbers to swap.' },
-  { icon: Recycle, title: 'Zero waste', body: 'Keep usable things out of landfill and in loving hands.' },
-  { icon: ShieldCheck, title: 'Safe & vetted', body: 'Every charity is admin-approved and image safety is automatic.' },
+  {
+    icon: ImagePlus,
+    title: 'Post in seconds',
+    body: 'Take a photo and your item is live for charities near you.',
+    visual: PostVisual,
+  },
+  {
+    icon: MapPin,
+    title: 'Live local map',
+    body: 'See which charities are around you and what they need.',
+    visual: MapVisual,
+  },
+  {
+    icon: Sparkles,
+    title: 'Smart matching',
+    body: 'Your photos are matched against real charity wishlists automatically.',
+    visual: MatchVisual,
+  },
+  {
+    icon: MessageCircle,
+    title: 'Direct chat',
+    body: 'Arrange pickup inside the app. You never share your phone number.',
+    visual: ChatVisual,
+  },
+  {
+    icon: Recycle,
+    title: 'Zero waste',
+    body: 'Usable things stay out of the landfill and go where they get used.',
+    visual: WasteVisual,
+  },
+  {
+    icon: ShieldCheck,
+    title: 'Safe & vetted',
+    body: 'Charities are checked by an admin before they can claim anything.',
+    visual: VettedVisual,
+  },
 ];
 
 function Features() {
   return (
     <section className="container py-24 sm:py-32">
       <Reveal className="mx-auto max-w-2xl text-center">
-        <h2 className="text-4xl font-bold tracking-tight sm:text-5xl">Designed to feel invisible.</h2>
-        <p className="mt-4 text-lg text-muted-foreground">Everything you need, nothing you don’t.</p>
+        <h2 className="text-4xl font-bold tracking-tight sm:text-5xl">What you get</h2>
+        <p className="mt-4 text-lg text-muted-foreground">A short list of things that matter.</p>
       </Reveal>
       <div className="mt-14 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
         {FEATURES.map((f, i) => (
@@ -287,6 +414,9 @@ function Features() {
               </div>
               <div className="mt-4 text-lg font-semibold">{f.title}</div>
               <p className="mt-1.5 text-sm text-muted-foreground">{f.body}</p>
+              <div className="mt-4 h-24 rounded-xl border bg-muted/40 p-3 transition-colors duration-300 group-hover:border-primary/20 group-hover:bg-muted/60">
+                <f.visual />
+              </div>
             </div>
           </Reveal>
         ))}
@@ -303,15 +433,15 @@ function FinalCta() {
         <div className="relative isolate overflow-hidden rounded-[2.5rem] bg-[#05070d] px-8 py-20 text-center text-white">
           <div className="aurora absolute inset-0 -z-10 opacity-80" />
           <h2 className="mx-auto max-w-2xl text-4xl font-bold tracking-tight sm:text-5xl">
-            Your clutter is someone’s <span className="text-gradient">lifeline.</span>
+            Someone nearby can <span className="text-gradient">use it.</span>
           </h2>
           <p className="mx-auto mt-4 max-w-xl text-lg text-white/70">
-            Join thousands turning spare things into real help — in the time it takes to take a photo.
+            Posting an item takes about a minute. That is usually all it needs to find a better home.
           </p>
           <div className="mt-8 flex flex-wrap justify-center gap-3">
             <Button asChild size="lg" className="group">
               <Link to="/signup">
-                Get started free
+                Get started
                 <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
               </Link>
             </Button>

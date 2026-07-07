@@ -32,7 +32,7 @@ export function PersonHome() {
         <div className="aurora absolute inset-0 -z-10 opacity-40" />
         <h1 className="text-2xl sm:text-3xl font-bold">Hello {user?.displayName?.split(' ')[0] ?? 'there'}.</h1>
         <p className="text-muted-foreground mt-1 max-w-xl">
-          Have something to give away? Snap a photo — local charities will see it and reach out.
+          Have something to give away? Snap a photo and local charities will see it and reach out.
         </p>
         <div className="flex flex-wrap gap-3 mt-5">
           <Button asChild size="lg">

@@ -8,7 +8,7 @@ import {
   signOut,
   type User as FirebaseUser,
 } from 'firebase/auth';
-import type { CustomClaims, User, Charity } from '@charity-net/shared';
+import { ApiError, type CustomClaims, type User, type Charity } from '@charity-net/shared';
 import { auth } from './firebase';
 import { getApi } from './api';
 
@@ -18,6 +18,13 @@ type AuthState = {
   charity: Charity | null;
   claims: CustomClaims | null;
   loading: boolean;
+  /**
+   * How the last profile fetch ended. 'missing' means the server definitively
+   * said this account has no profile (onboarding never finished); 'error'
+   * means the request itself failed and we know nothing. Routing must not
+   * treat the two the same — an API blip is not a reason to restart signup.
+   */
+  profileStatus: 'unknown' | 'ok' | 'missing' | 'error';
 };
 
 type AuthContextValue = AuthState & {
@@ -37,11 +44,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     charity: null,
     claims: null,
     loading: true,
+    profileStatus: 'unknown',
   });
 
   const refresh = async (): Promise<void> => {
     if (!auth.currentUser) {
-      setState({ firebaseUser: null, user: null, charity: null, claims: null, loading: false });
+      setState({
+        firebaseUser: null,
+        user: null,
+        charity: null,
+        claims: null,
+        loading: false,
+        profileStatus: 'unknown',
+      });
       return;
     }
     const token = await auth.currentUser.getIdTokenResult(true);
@@ -52,20 +67,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
     try {
       const data = await getApi().me();
+      const user = (data.user as unknown as User | null) ?? null;
       setState({
         firebaseUser: auth.currentUser,
-        user: (data.user as unknown as User | null) ?? null,
+        user,
         charity: ((data as unknown as { charity?: Charity }).charity ?? null),
         claims,
         loading: false,
+        profileStatus: user ? 'ok' : 'missing',
       });
-    } catch {
+    } catch (err) {
+      // The server rejected our token outright — the account no longer exists
+      // or the session was revoked. Keeping the dead session around strands
+      // the user on signed-in-only screens, so drop it.
+      if (err instanceof ApiError && err.status === 401) {
+        await signOut(auth);
+        return;
+      }
       setState({
         firebaseUser: auth.currentUser,
         user: null,
         charity: null,
         claims,
         loading: false,
+        profileStatus: 'error',
       });
     }
   };
@@ -79,6 +104,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           charity: null,
           claims: null,
           loading: false,
+          profileStatus: 'unknown',
         });
         return;
       }

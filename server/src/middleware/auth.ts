@@ -12,6 +12,8 @@ declare global {
       user?: {
         uid: string;
         email?: string;
+        /** Seconds since epoch of the last credential sign-in (token auth_time). */
+        authTime: number;
         claims: CustomClaims;
       };
     }
@@ -37,6 +39,7 @@ export async function authMiddleware(
     req.user = {
       uid: decoded.uid,
       email: decoded.email,
+      authTime: decoded.auth_time,
       claims: { role, approved, charityId },
     };
     next();

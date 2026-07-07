@@ -36,7 +36,7 @@ export function PendingApprovalPage() {
       await refresh();
       // If refresh() picked up the approval, the claims guard above redirects on
       // the next render. Otherwise let the user know nothing has changed yet.
-      toast({ title: 'Checked', description: 'Still pending — we’ll move you over automatically once approved.' });
+      toast({ title: 'Checked', description: "Still pending. We'll move you over automatically once approved." });
     } finally {
       setChecking(false);
     }
@@ -54,7 +54,7 @@ export function PendingApprovalPage() {
         <CardContent className="space-y-3">
           <p className="text-sm text-muted-foreground">
             {charity?.name ?? 'Your application'} is pending admin approval. This page updates
-            itself the moment you're approved — no need to refresh.
+            itself the moment you're approved, so there's no need to refresh.
           </p>
           <div className="flex gap-2">
             <Button onClick={checkNow} disabled={checking} variant="outline">

@@ -4,44 +4,50 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222 47% 11%;
+    /* Warm, neighbourly palette: paper background, ink text, a forest-green
+       brand, and a terracotta "action" colour (--sun) for the main buttons. */
+    --background: 40 33% 97%;
+    --foreground: 20 14% 16%;
     --card: 0 0% 100%;
-    --card-foreground: 222 47% 11%;
-    --primary: 173 80% 30%;
-    --primary-foreground: 0 0% 98%;
-    --secondary: 210 40% 96%;
-    --secondary-foreground: 222 47% 11%;
-    --muted: 210 40% 96%;
-    --muted-foreground: 215 16% 47%;
-    --accent: 173 80% 95%;
-    --accent-foreground: 173 80% 25%;
-    --destructive: 0 84% 60%;
+    --card-foreground: 20 14% 16%;
+    --primary: 151 38% 27%;
+    --primary-foreground: 40 33% 97%;
+    --secondary: 38 30% 92%;
+    --secondary-foreground: 20 14% 20%;
+    --muted: 38 24% 93%;
+    --muted-foreground: 25 8% 42%;
+    --accent: 151 28% 90%;
+    --accent-foreground: 151 45% 20%;
+    --destructive: 0 72% 46%;
     --destructive-foreground: 0 0% 98%;
-    --border: 214 32% 91%;
-    --input: 214 32% 91%;
-    --ring: 173 80% 30%;
-    --radius: 0.75rem;
+    --border: 34 20% 86%;
+    --input: 34 20% 86%;
+    --ring: 151 38% 27%;
+    --sun: 22 80% 47%;
+    --sun-foreground: 40 33% 97%;
+    --radius: 0.5rem;
   }
 
   .dark {
-    --background: 222 47% 6%;
-    --foreground: 210 40% 98%;
-    --card: 222 47% 8%;
-    --card-foreground: 210 40% 98%;
-    --primary: 173 70% 45%;
-    --primary-foreground: 222 47% 6%;
-    --secondary: 217 33% 17%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217 33% 17%;
-    --muted-foreground: 215 20% 65%;
-    --accent: 173 50% 18%;
-    --accent-foreground: 173 70% 85%;
-    --destructive: 0 70% 50%;
+    --background: 24 12% 10%;
+    --foreground: 40 20% 92%;
+    --card: 24 12% 13%;
+    --card-foreground: 40 20% 92%;
+    --primary: 151 44% 46%;
+    --primary-foreground: 24 20% 8%;
+    --secondary: 24 10% 18%;
+    --secondary-foreground: 40 20% 92%;
+    --muted: 24 10% 18%;
+    --muted-foreground: 35 10% 62%;
+    --accent: 151 26% 20%;
+    --accent-foreground: 151 44% 82%;
+    --destructive: 0 62% 47%;
     --destructive-foreground: 0 0% 98%;
-    --border: 217 33% 17%;
-    --input: 217 33% 17%;
-    --ring: 173 70% 45%;
+    --border: 24 10% 22%;
+    --input: 24 10% 22%;
+    --ring: 151 44% 46%;
+    --sun: 22 78% 54%;
+    --sun-foreground: 24 20% 8%;
   }
 
   * {
@@ -59,95 +65,6 @@
   }
 }
 
-/* ------------------------------------------------------------------ *
- * Motion system — Apple-style scroll reveals, parallax, ambient art.
- * Everything degrades to "instantly visible, no motion" when the user
- * prefers reduced motion.
- * ------------------------------------------------------------------ */
-@layer utilities {
-  /* Scroll-reveal: hidden until IntersectionObserver adds .in-view */
-  .reveal {
-    opacity: 0;
-    transform: translateY(28px);
-    transition:
-      opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1),
-      transform 0.8s cubic-bezier(0.16, 1, 0.3, 1),
-      filter 0.8s cubic-bezier(0.16, 1, 0.3, 1);
-    will-change: opacity, transform;
-  }
-  .reveal-scale { transform: translateY(28px) scale(0.94); }
-  .reveal-blur  { filter: blur(14px); }
-  .reveal-left  { transform: translateX(-48px); }
-  .reveal-right { transform: translateX(48px); }
-  .reveal.in-view {
-    opacity: 1;
-    transform: none;
-    filter: none;
-  }
-
-  /* Ambient animated gradient ("aurora") background for hero sections */
-  .aurora {
-    background:
-      radial-gradient(40% 55% at 20% 20%, hsl(173 80% 55% / 0.35), transparent 60%),
-      radial-gradient(45% 50% at 80% 25%, hsl(199 89% 60% / 0.30), transparent 60%),
-      radial-gradient(50% 60% at 65% 80%, hsl(262 83% 66% / 0.28), transparent 60%),
-      radial-gradient(45% 55% at 15% 75%, hsl(330 81% 66% / 0.25), transparent 60%);
-    background-size: 200% 200%;
-    animation: aurora 18s ease-in-out infinite alternate;
-  }
-
-  .glass {
-    background: hsl(var(--card) / 0.65);
-    backdrop-filter: blur(14px) saturate(140%);
-    -webkit-backdrop-filter: blur(14px) saturate(140%);
-  }
-
-  .animate-float { animation: float 6s ease-in-out infinite; }
-  .animate-float-slow { animation: float 9s ease-in-out infinite; }
-  .animate-bob { animation: bob 2.4s ease-in-out infinite; }
-
-  /* Continuous horizontal marquee (pauses on hover) */
-  .marquee-track {
-    display: flex;
-    width: max-content;
-    animation: marquee 32s linear infinite;
-  }
-  .marquee:hover .marquee-track { animation-play-state: paused; }
-
-  .text-gradient {
-    background-image: linear-gradient(120deg, hsl(var(--primary)), hsl(199 89% 55%), hsl(262 83% 66%));
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-  }
-}
-
-@keyframes aurora {
-  0%   { background-position: 0% 0%; }
-  50%  { background-position: 100% 50%; }
-  100% { background-position: 0% 100%; }
-}
-@keyframes float {
-  0%, 100% { transform: translateY(0); }
-  50%      { transform: translateY(-14px); }
-}
-@keyframes bob {
-  0%, 100% { transform: translateY(0); }
-  50%      { transform: translateY(6px); }
-}
-@keyframes marquee {
-  from { transform: translateX(0); }
-  to   { transform: translateX(-50%); }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  html { scroll-behavior: auto; }
-  .reveal { opacity: 1 !important; transform: none !important; filter: none !important; transition: none !important; }
-  .aurora, .animate-float, .animate-float-slow, .animate-bob, .marquee-track {
-    animation: none !important;
-  }
-}
-
 @layer utilities {
   .scrollbar-thin::-webkit-scrollbar { width: 8px; height: 8px; }
   .scrollbar-thin::-webkit-scrollbar-thumb { background: hsl(var(--border)); border-radius: 8px; }
@@ -155,12 +72,16 @@
   /* Google Maps InfoWindow always renders on a white background, so pin the
      light design tokens inside popups regardless of the app theme. */
   .map-popup {
-    --foreground: 222 47% 11%;
+    --foreground: 20 14% 16%;
     --card: 0 0% 100%;
-    --card-foreground: 222 47% 11%;
-    --muted-foreground: 215 16% 47%;
-    --primary: 173 80% 30%;
-    --border: 214 32% 91%;
+    --card-foreground: 20 14% 16%;
+    --muted-foreground: 25 8% 42%;
+    --primary: 151 38% 27%;
+    --border: 34 20% 86%;
     color: hsl(var(--foreground));
   }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
 }

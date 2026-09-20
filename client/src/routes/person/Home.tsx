@@ -6,7 +6,6 @@ import { collection, getDocs, orderBy, query, where, limit } from 'firebase/fire
 import type { Item } from '@charity-net/shared';
 import { db } from '@/lib/firebase';
 import { ItemCard } from '@/components/items/ItemCard';
-import { Reveal } from '@/components/Reveal';
 import { ImagePlus, MapPin } from 'lucide-react';
 
 export function PersonHome() {
@@ -28,21 +27,20 @@ export function PersonHome() {
 
   return (
     <div className="container py-6 sm:py-8 space-y-8">
-      <Reveal variant="scale" className="relative overflow-hidden rounded-2xl border bg-gradient-to-br from-primary/10 to-accent/40 p-6 sm:p-10">
-        <div className="aurora absolute inset-0 -z-10 opacity-40" />
+      <div className="rounded-lg border bg-secondary/50 p-6 sm:p-8">
         <h1 className="text-2xl sm:text-3xl font-bold">Hello {user?.displayName?.split(' ')[0] ?? 'there'}.</h1>
         <p className="text-muted-foreground mt-1 max-w-xl">
           Have something to give away? Snap a photo and local charities will see it and reach out.
         </p>
         <div className="flex flex-wrap gap-3 mt-5">
-          <Button asChild size="lg">
+          <Button asChild size="lg" variant="sun">
             <Link to="/post"><ImagePlus className="mr-2 h-4 w-4" /> Post an item</Link>
           </Button>
           <Button asChild variant="outline" size="lg">
             <Link to="/charities"><MapPin className="mr-2 h-4 w-4" /> See nearby charities</Link>
           </Button>
         </div>
-      </Reveal>
+      </div>
 
       <section>
         <h2 className="text-lg font-semibold mb-3">Your recent items</h2>
@@ -52,10 +50,8 @@ export function PersonHome() {
           </div>
         ) : (
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {items.map((it, i) => (
-              <Reveal key={it.id} variant="up" delay={(i % 3) * 80}>
-                <ItemCard item={it} />
-              </Reveal>
+            {items.map((it) => (
+              <ItemCard key={it.id} item={it} />
             ))}
           </div>
         )}

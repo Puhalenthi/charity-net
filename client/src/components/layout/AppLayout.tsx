@@ -113,8 +113,8 @@ export function AppLayout() {
                 <Button variant="ghost" asChild>
                   <Link to="/login">Sign in</Link>
                 </Button>
-                <Button asChild>
-                  <Link to="/signup">Get started</Link>
+                <Button asChild variant="sun">
+                  <Link to="/signup">Give an item</Link>
                 </Button>
               </>
             )}
@@ -133,6 +133,8 @@ export function AppLayout() {
           <Outlet />
         </div>
       </main>
+
+      <Footer />
 
       {/* Mobile bottom nav */}
       {user && (
@@ -165,5 +167,37 @@ export function AppLayout() {
         </nav>
       )}
     </div>
+  );
+}
+
+function Footer() {
+  return (
+    <footer className="border-t bg-secondary/40">
+      <div className="container flex flex-col gap-6 py-10 sm:flex-row sm:items-start sm:justify-between">
+        <div className="max-w-sm">
+          <div className="flex items-center gap-2 font-semibold">
+            <span className="grid h-7 w-7 place-items-center rounded-md bg-primary text-primary-foreground">
+              <Heart className="h-4 w-4" />
+            </span>
+            Charity Net
+          </div>
+          <p className="mt-3 text-sm text-muted-foreground">
+            A neighbourhood reuse network. Give what you no longer need to people
+            nearby who do, and keep good things out of the landfill.
+          </p>
+        </div>
+        <nav className="flex flex-col gap-2 text-sm">
+          <span className="font-semibold">Get involved</span>
+          <Link to="/signup" className="text-muted-foreground hover:text-foreground">Give an item</Link>
+          <Link to="/signup" className="text-muted-foreground hover:text-foreground">Run a charity</Link>
+          <Link to="/login" className="text-muted-foreground hover:text-foreground">Sign in</Link>
+        </nav>
+      </div>
+      <div className="border-t">
+        <div className="container py-4 text-xs text-muted-foreground">
+          © {new Date().getFullYear()} Charity Net. Made for local communities.
+        </div>
+      </div>
+    </footer>
   );
 }

@@ -20,8 +20,10 @@
     "typecheck": "pnpm -r typecheck",
     "lint": "pnpm -r lint",
     "test": "pnpm -r test",
-    "deploy": "pnpm run deploy:client",
-    "deploy:client": "pnpm --filter @charity-net/shared build && pnpm --filter @charity-net/client build && firebase deploy --only hosting,firestore:rules,firestore:indexes,storage,functions",
+    "deploy": "bash ./scripts/deploy.sh all",
+    "deploy:all": "bash ./scripts/deploy.sh all",
+    "deploy:client": "bash ./scripts/deploy.sh client",
+    "deploy:server": "bash ./scripts/deploy.sh server",
     "deploy:server:manual": "gcloud builds submit --config cloudbuild.yaml ."
   },
   "devDependencies": {

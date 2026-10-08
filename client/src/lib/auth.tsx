@@ -8,7 +8,7 @@ import {
   signOut,
   type User as FirebaseUser,
 } from 'firebase/auth';
-import { ApiError, type CustomClaims, type User, type Charity } from '@charity-net/shared';
+import { ApiError, toLoginEmail, type CustomClaims, type User, type Charity } from '@charity-net/shared';
 import { auth } from './firebase';
 import { getApi } from './api';
 
@@ -120,8 +120,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const value = useMemo<AuthContextValue>(
     () => ({
       ...state,
-      async signInEmail(email: string, password: string) {
-        await signInWithEmailAndPassword(auth, email, password);
+      async signInEmail(emailOrUsername: string, password: string) {
+        // Admins sign in with a bare username; it maps to a reserved address.
+        await signInWithEmailAndPassword(auth, toLoginEmail(emailOrUsername), password);
       },
       async signUpEmail(email: string, password: string) {
         await createUserWithEmailAndPassword(auth, email, password);

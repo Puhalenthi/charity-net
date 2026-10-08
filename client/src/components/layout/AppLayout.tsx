@@ -1,9 +1,12 @@
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { Heart, MapPin, MessageSquare, Bell, ListChecks, ImagePlus, LogOut, Settings, Users } from 'lucide-react';
+import { Heart, MapPin, MessageSquare, Bell, ListChecks, ImagePlus, LogOut, Settings, Users, LayoutTemplate } from 'lucide-react';
+import type { SiteFooter as SiteFooterContent, SiteHeader } from '@charity-net/shared';
 import { useAuth } from '@/lib/auth';
+import { useSiteContent } from '@/hooks/useSiteContent';
+import { SiteLink } from '@/components/site/SiteLink';
 import { useNotifications } from '@/hooks/useNotifications';
 import { useInbox } from '@/hooks/useInbox';
-import { Button } from '@/components/ui/button';
+import { Button, buttonVariants } from '@/components/ui/button';
 import { cn, initials } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
@@ -28,12 +31,14 @@ const charityNav: NavItem[] = [
 ];
 
 const adminNav: NavItem[] = [
+  { to: '/admin/site', label: 'Site editor', icon: LayoutTemplate },
   { to: '/admin/approvals', label: 'Approvals', icon: ListChecks },
   { to: '/admin/users', label: 'Users', icon: Users },
 ];
 
 export function AppLayout() {
   const { user, claims, signOut } = useAuth();
+  const site = useSiteContent();
   const navigate = useNavigate();
   const location = useLocation();
   const { unread: alertCount } = useNotifications();
@@ -51,10 +56,8 @@ export function AppLayout() {
       <header className="border-b sticky top-0 z-30 bg-background/95 backdrop-blur">
         <div className="container flex h-16 items-center justify-between gap-4">
           <Link to="/" className="flex items-center gap-2 font-semibold">
-            <span className="grid h-8 w-8 place-items-center rounded-md bg-primary text-primary-foreground">
-              <Heart className="h-4 w-4" />
-            </span>
-            <span className="hidden sm:inline">Charity Net</span>
+            <BrandMark header={site.header} />
+            <span className="hidden sm:inline">{site.header.brandName}</span>
           </Link>
           <nav className="hidden md:flex items-center gap-1">
             {user &&
@@ -109,14 +112,7 @@ export function AppLayout() {
                 </Button>
               </>
             ) : (
-              <>
-                <Button variant="ghost" asChild>
-                  <Link to="/login">Sign in</Link>
-                </Button>
-                <Button asChild variant="sun">
-                  <Link to="/signup">Give an item</Link>
-                </Button>
-              </>
+              <SignedOutActions header={site.header} />
             )}
           </div>
         </div>
@@ -134,7 +130,8 @@ export function AppLayout() {
         </div>
       </main>
 
-      <Footer />
+      {/* The site editor is a full-height workspace with its own footer preview. */}
+      {!location.pathname.startsWith('/admin/site') && <SiteFooter header={site.header} footer={site.footer} />}
 
       {/* Mobile bottom nav */}
       {user && (
@@ -170,32 +167,64 @@ export function AppLayout() {
   );
 }
 
-function Footer() {
+export function BrandMark({ header, small }: { header: SiteHeader; small?: boolean }) {
+  const box = small ? 'h-7 w-7' : 'h-8 w-8';
+  if (header.logoUrl) {
+    return <img src={header.logoUrl} alt="" className={cn(box, 'rounded-md object-contain')} />;
+  }
+  return (
+    <span className={cn(box, 'grid place-items-center rounded-md bg-primary text-primary-foreground')}>
+      <Heart className="h-4 w-4" />
+    </span>
+  );
+}
+
+/** Header buttons for signed-out visitors (also shown in the editor preview). */
+export function SignedOutActions({ header }: { header: SiteHeader }) {
+  return (
+    <>
+      <SiteLink href="/explore" className={buttonVariants({ variant: 'ghost' })}>
+        <MapPin className="h-4 w-4" />
+        <span className="hidden sm:inline">Map</span>
+        <span className="sr-only sm:hidden">Map of charities and items</span>
+      </SiteLink>
+      <SiteLink href="/login" className={buttonVariants({ variant: 'ghost' })}>
+        Sign in
+      </SiteLink>
+      {header.cta.label && (
+        <SiteLink href={header.cta.href} className={buttonVariants({ variant: 'sun' })}>
+          {header.cta.label}
+        </SiteLink>
+      )}
+    </>
+  );
+}
+
+export function SiteFooter({ header, footer }: { header: SiteHeader; footer: SiteFooterContent }) {
   return (
     <footer className="border-t bg-secondary/40">
       <div className="container flex flex-col gap-6 py-10 sm:flex-row sm:items-start sm:justify-between">
         <div className="max-w-sm">
           <div className="flex items-center gap-2 font-semibold">
-            <span className="grid h-7 w-7 place-items-center rounded-md bg-primary text-primary-foreground">
-              <Heart className="h-4 w-4" />
-            </span>
-            Charity Net
+            <BrandMark header={header} small />
+            {header.brandName}
           </div>
-          <p className="mt-3 text-sm text-muted-foreground">
-            A neighbourhood reuse network. Give what you no longer need to people
-            nearby who do, and keep good things out of the landfill.
-          </p>
+          {footer.blurb && <p className="mt-3 text-sm text-muted-foreground">{footer.blurb}</p>}
         </div>
-        <nav className="flex flex-col gap-2 text-sm">
-          <span className="font-semibold">Get involved</span>
-          <Link to="/signup" className="text-muted-foreground hover:text-foreground">Give an item</Link>
-          <Link to="/signup" className="text-muted-foreground hover:text-foreground">Run a charity</Link>
-          <Link to="/login" className="text-muted-foreground hover:text-foreground">Sign in</Link>
-        </nav>
+        {footer.links.length > 0 && (
+          <nav className="flex flex-col gap-2 text-sm">
+            {footer.linksTitle && <span className="font-semibold">{footer.linksTitle}</span>}
+            {footer.links.map((l) => (
+              <SiteLink key={l.id} href={l.href} className="text-muted-foreground hover:text-foreground">
+                {l.label}
+              </SiteLink>
+            ))}
+          </nav>
+        )}
       </div>
       <div className="border-t">
         <div className="container py-4 text-xs text-muted-foreground">
-          © {new Date().getFullYear()} Charity Net. Made for local communities.
+          © {new Date().getFullYear()} {footer.copyright}
         </div>
       </div>
     </footer>

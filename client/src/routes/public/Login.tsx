@@ -23,7 +23,7 @@ export function LoginPage() {
     setLoading(true);
     try {
       await signInEmail(email, password);
-      toast({ title: 'Signed in', description: `Welcome back, ${email}.`, variant: 'success' });
+      toast({ title: 'Signed in', description: `Welcome back, ${email.trim()}.`, variant: 'success' });
       navigate('/');
     } catch (err) {
       toast({ title: 'Sign in failed', description: authErrorMessage(err), variant: 'destructive' });
@@ -47,8 +47,18 @@ export function LoginPage() {
         <CardContent className="space-y-4">
           <form onSubmit={handle} className="space-y-3">
             <div className="space-y-1">
-              <Label htmlFor="email">Email</Label>
-              <Input id="email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
+              <Label htmlFor="email">Email or username</Label>
+              <Input
+                id="email"
+                type="text"
+                inputMode="email"
+                autoComplete="username"
+                autoCapitalize="none"
+                spellCheck={false}
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
             </div>
             <div className="space-y-1">
               <Label htmlFor="password">Password</Label>

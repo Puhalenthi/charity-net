@@ -1,6 +1,11 @@
 import { useMemo, useState } from 'react';
 import { EmailAuthProvider, reauthenticateWithCredential } from 'firebase/auth';
-import { ApiError, type AdminCharityRecord, type AdminUserRecord } from '@charity-net/shared';
+import {
+  ApiError,
+  usernameFromEmail,
+  type AdminCharityRecord,
+  type AdminUserRecord,
+} from '@charity-net/shared';
 import { KeyRound, Lock, Search } from 'lucide-react';
 import { auth } from '@/lib/firebase';
 import { getApi } from '@/lib/api';
@@ -220,7 +225,9 @@ function UserRow({
     <tr className="border-b align-top last:border-0">
       <td className="py-2.5 pr-4">
         <div className="font-medium">{user.displayName ?? '(no name)'}</div>
-        <div className="text-xs text-muted-foreground">{user.email ?? user.uid}</div>
+        <div className="text-xs text-muted-foreground">
+          {usernameFromEmail(user.email) ? `username: ${usernameFromEmail(user.email)}` : (user.email ?? user.uid)}
+        </div>
       </td>
       <td className="py-2.5 pr-4">
         <span className="capitalize">{user.role}</span>

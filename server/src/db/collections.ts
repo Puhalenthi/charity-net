@@ -16,4 +16,6 @@ export const COL = {
   adminAudit: () => db.collection('adminAudit'),
   aiUsage: () => db.collection('aiUsage'),
   reports: () => db.collection('reports'),
+  siteContent: () => db.collection('siteContent'),
+  siteVersions: () => db.collection('siteContent').doc('published').collection('versions'),
 } as const;

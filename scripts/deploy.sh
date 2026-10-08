@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Deploy Charity Net to production.
+# Deploy Storage Auction Connect to production.
 #
 #   Client -> Firebase Hosting (the website you see in the browser)
 #   Server -> Cloud Run        (the /api backend)
@@ -20,6 +20,10 @@ cd "$REPO_ROOT"
 PROJECT="charity-net-c4474"
 REGION="europe-west1"
 SERVICE="charity-net"        # the Cloud Run service Firebase Hosting rewrites /api/** to
+SITE_URL="https://storageauctionconnect.org"
+# CORS allowlist for the API. The site calls /api same-origin through the
+# Hosting rewrite, so this only matters for direct cross-origin callers.
+ALLOWED_ORIGINS="https://storageauctionconnect.org,https://www.storageauctionconnect.org,https://$PROJECT.web.app,https://$PROJECT.firebaseapp.com"
 TARGET="${1:-all}"
 
 green() { printf '\033[1;32m%s\033[0m\n' "$*"; }
@@ -38,7 +42,7 @@ deploy_client() {
   firebase deploy \
     --project "$PROJECT" \
     --only hosting,firestore:rules,firestore:indexes,storage,functions
-  green "==> Client live: https://$PROJECT.web.app  (hard-refresh with Ctrl-Shift-R)"
+  green "==> Client live: $SITE_URL  (also https://$PROJECT.web.app; hard-refresh with Ctrl-Shift-R)"
 }
 
 deploy_server() {
@@ -50,6 +54,7 @@ deploy_server() {
     --source . \
     --project "$PROJECT" \
     --region "$REGION" \
+    --update-env-vars "^@^ALLOWED_ORIGINS=$ALLOWED_ORIGINS" \
     --quiet
   green "==> Server deployed. Serving revision:"
   gcloud run services describe "$SERVICE" --project "$PROJECT" --region "$REGION" \

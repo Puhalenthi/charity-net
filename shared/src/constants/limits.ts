@@ -10,3 +10,4 @@ export const MAX_ITEMS_PER_DAY_PER_USER = 20;
 export const MAX_MESSAGE_LENGTH = 2000;
 export const MAX_TITLE_LENGTH = 100;
 export const MAX_DESCRIPTION_LENGTH = 1000;
+export const PUBLIC_MAP_JITTER_METERS = 300;

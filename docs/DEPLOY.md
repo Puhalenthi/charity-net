@@ -22,12 +22,49 @@ Two Firebase projects — one staging, one prod — wired in `.firebaserc`:
 {
   "projects": {
     "default": "charity-net-dev",
-    "production": "charity-net-prod"
+    "production": "charity-net-c4474"
   }
 }
 ```
 
 Switch with `firebase use default` / `firebase use production`.
+
+## Custom domain (storageauctionconnect.org)
+
+The site is served from `https://storageauctionconnect.org` (DNS at Squarespace,
+connected in Firebase Hosting). Sign-in needs these once per domain:
+
+1. **Firebase Auth authorized domains**: run `./scripts/authorizeDomains.sh`
+   (idempotent; adds the apex and `www`).
+2. **Google OAuth client** (GCP console → APIs & Services → Credentials → the
+   auto-created "Web client"): add the JavaScript origins
+   `https://storageauctionconnect.org` and `https://www.storageauctionconnect.org`,
+   and the redirect URIs `https://storageauctionconnect.org/__/auth/handler` and
+   `https://www.storageauctionconnect.org/__/auth/handler`.
+3. **Maps browser key** → HTTP referrers: add `storageauctionconnect.org/*` and
+   `www.storageauctionconnect.org/*`.
+4. `client/.env.production` has `VITE_FIREBASE_AUTH_DOMAIN=storageauctionconnect.org`
+   so the Google sign-in popup runs first-party on the custom domain (Hosting
+   serves `/__/auth/*` there). Rebuild + deploy the client after changing it.
+
+`scripts/deploy.sh server` also sets the Cloud Run `ALLOWED_ORIGINS` to the
+custom domain plus the `web.app` / `firebaseapp.com` defaults.
+
+## Admin account
+
+There is a single admin, signed in with a **username** (`admin`) rather than an
+email. Usernames map to `<username>@login.storageauctionconnect.org` behind the
+scenes (see `shared/src/constants/adminLogin.ts`). To (re)create it and demote
+every other admin:
+
+```bash
+FIREBASE_PROJECT_ID=charity-net-c4474 pnpm --filter @charity-net/scripts bootstrap-admin
+# add --keep-password to leave an existing admin's password untouched
+```
+
+That resets the password to `password`; the admin can change both the username
+and the password under **Settings**. The script also seeds the Site editor's
+published content if nothing has been published yet.
 
 ## Secrets
 
@@ -94,7 +131,7 @@ equivalent, for reference:
 ```bash
 gcloud scheduler jobs create http expire-interest-windows \
   --schedule="every 30 minutes" \
-  --uri="https://charity-net-prod.web.app/api/jobs/expire-interest-windows" \
+  --uri="https://storageauctionconnect.org/api/jobs/expire-interest-windows" \
   --http-method=POST \
   --headers="x-job-secret=<JOB_SECRET>"
 ```

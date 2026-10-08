@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { CompleteSignupRequestSchema, geohashFor } from '@charity-net/shared';
+import { CompleteSignupRequestSchema, geohashFor, isUsernameEmail } from '@charity-net/shared';
 import { COL } from '../db/collections.js';
 import { FieldValue } from '../db/admin.js';
 import { requireAuth } from '../middleware/auth.js';
@@ -13,6 +13,11 @@ authRouter.post('/complete-signup', requireAuth, async (req, res, next) => {
     const body = CompleteSignupRequestSchema.parse(req.body);
     const uid = req.user!.uid;
     const email = req.user!.email ?? '';
+    // Username-login addresses are reserved for admin accounts, which are
+    // provisioned by script — never let a self-signup claim one.
+    if (isUsernameEmail(email)) {
+      throw new HttpError(403, 'reserved_email', 'This address is reserved');
+    }
 
     const userRef = COL.users().doc(uid);
     const existing = await userRef.get();

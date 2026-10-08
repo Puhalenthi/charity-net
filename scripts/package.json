@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "set-admin": "tsx src/setAdmin.ts",
-    "seed": "tsx src/seedEmulator.ts"
+    "seed": "tsx src/seedEmulator.ts",
+    "bootstrap-admin": "tsx src/bootstrapAdmin.ts"
   },
   "dependencies": {
     "@charity-net/shared": "workspace:*",

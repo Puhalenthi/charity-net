@@ -5,7 +5,7 @@
 import { applicationDefault, getApps, initializeApp } from 'firebase-admin/app';
 import { getAuth } from 'firebase-admin/auth';
 import { getFirestore } from 'firebase-admin/firestore';
-import { INTEREST_WINDOW_MS, geohashFor } from '@charity-net/shared';
+import { INTEREST_WINDOW_MS, geohashFor, toLoginEmail } from '@charity-net/shared';
 
 if (!getApps().length) {
   initializeApp({
@@ -27,12 +27,13 @@ async function ensureUser(email: string, password: string) {
 async function main() {
   const personEmail = 'person@charitynet.com';
   const charityEmail = 'charity@charitynet.com';
-  const adminEmail = 'admin@charitynet.com';
+  // Admins sign in with a username ("admin"), stored as a synthetic email.
+  const adminEmail = toLoginEmail('admin');
 
   const now = Date.now();
   const person = await ensureUser(personEmail, 'password123');
   const charity = await ensureUser(charityEmail, 'password123');
-  const admin = await ensureUser(adminEmail, 'password123');
+  const admin = await ensureUser(adminEmail, 'password');
 
   await auth.setCustomUserClaims(person.uid, { role: 'person', approved: true });
   await auth.setCustomUserClaims(admin.uid, { role: 'admin', approved: true });
@@ -43,7 +44,8 @@ async function main() {
   await db.collection('users').doc(admin.uid).set({
     uid: admin.uid,
     role: 'admin',
-    displayName: 'Platform Admin',
+    displayName: 'Admin',
+    defaultPassword: true,
     email: adminEmail,
     searchRadiusKm: 10,
     notificationPrefs: { email: true, inApp: true },
@@ -134,7 +136,7 @@ async function main() {
   console.log('Seed complete:');
   console.log(`  person:  ${personEmail} / password123  (uid=${person.uid})`);
   console.log(`  charity: ${charityEmail} / password123 (uid=${charity.uid})`);
-  console.log(`  admin:   ${adminEmail} / password123   (uid=${admin.uid})`);
+  console.log(`  admin:   admin / password   (username login, uid=${admin.uid})`);
   console.log(`  itemId:  ${itemRef.id}`);
   console.log(`  charity: ${charityRef.id}`);
 }

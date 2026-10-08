@@ -12,6 +12,8 @@ import { wishlistsRouter } from './routes/wishlists.js';
 import { adminRouter } from './routes/admin.js';
 import { geocodeRouter } from './routes/geocode.js';
 import { jobsRouter } from './routes/jobs.js';
+import { siteContentRouter } from './routes/siteContent.js';
+import { publicMapRouter } from './routes/publicMap.js';
 
 export function createApp(): express.Express {
   const app = express();
@@ -36,7 +38,9 @@ export function createApp(): express.Express {
   api.use('/me', meRouter);
   api.use('/items', itemsRouter);
   api.use('/charities', wishlistsRouter);
+  api.use('/admin/site', siteContentRouter);
   api.use('/admin', adminRouter);
+  api.use('/public', publicMapRouter);
   api.use('/geocode', geocodeRouter);
   api.use('/jobs', jobsRouter);
   app.use('/api', api);

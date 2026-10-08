@@ -164,6 +164,24 @@ service cloud.firestore {
       allow write: if false;
     }
 
+    // ---- siteContent (site editor) ----
+    // The published landing-page content is public; the draft and publish
+    // history are admin-only. All writes go through the server, which
+    // validates content against the shared zod schema.
+    match /siteContent/published {
+      allow read: if true;
+      allow write: if false;
+
+      match /versions/{versionId} {
+        allow read: if isAdmin();
+        allow write: if false;
+      }
+    }
+    match /siteContent/draft {
+      allow read: if isAdmin();
+      allow write: if false;
+    }
+
     // ---- reports ----
     match /reports/{reportId} {
       allow read: if isAdmin();

@@ -1,4 +1,4 @@
-# Charity Net — Architecture
+# Storage Auction Connect — Architecture
 
 ## High-level flow
 
@@ -30,6 +30,9 @@ Cron job expires unselected items    → POST /api/jobs/expire-interest-windows
 | `adminAudit/{eventId}` | Audit log for admin actions. |
 | `aiUsage/{YYYY-MM-DD}` | Daily AI usage tally for cost control. |
 | `reports/{reportId}` | Minimal abuse reports surfaced to admin. |
+| `siteContent/published` | Live landing-page / header / footer content (public read). |
+| `siteContent/draft` | Site editor's autosaved draft (admin only). |
+| `siteContent/published/versions/{id}` | Snapshot per publish, last 50 (admin only). |
 
 ## Geohash
 
@@ -52,7 +55,8 @@ for (const [start, end] of bounds) {
 - Person signups auto-approve.
 - Charity signups create a `charities` doc in `status='pending'` and a custom claim with `approved=false`.
 - Admin approval (`POST /admin/charities/:id/approve`) flips the doc + claim and notifies (in-app).
-- Admin role is provisioned only via `scripts/setAdmin.ts`. No public route.
+- Admin role is provisioned only via scripts (`scripts/bootstrapAdmin.ts`, or `scripts/setAdmin.ts` for an existing account). No public route.
+- Admins sign in with a username, stored as the synthetic email `<username>@login.storageauctionconnect.org`; self-signup with that domain is refused.
 
 ## Server boundaries
 
@@ -90,7 +94,7 @@ Run inside the emulator first.
 
 1. Sign up as Person A → confirm `users/{uid}` doc + claim `role=person, approved=true`.
 2. Sign up as Charity X → confirm `charities/{id}` doc in `pending`; UI shows pending screen.
-3. `pnpm --filter @charity-net/scripts set-admin admin@charitynet.com` → log in, see `/admin/approvals`.
+3. Sign in as `admin` / `password` (seeded) → lands on `/admin/site`.
 4. Approve Charity X → status flips, claim updates, in-app notification appears, audit row written.
 5. Charity X sets a wishlist row with tag `sofa`.
 6. Person A posts a couch photo → confirm: compression in devtools, Storage upload, item doc `aiStatus=pending → done`, `aiTags` includes `sofa`. Charity X gets a wishlist-match notification.

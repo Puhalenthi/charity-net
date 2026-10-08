@@ -6,6 +6,7 @@ import { LoginPage } from '@/routes/public/Login';
 import { SignupPage } from '@/routes/public/Signup';
 import { CompleteSignupPage } from '@/routes/public/CompleteSignup';
 import { PendingApprovalPage } from '@/routes/charity/PendingApproval';
+import { ExploreMapPage } from '@/routes/public/ExploreMap';
 
 import { PersonHome } from '@/routes/person/Home';
 import { PostItemPage } from '@/routes/person/PostItem';
@@ -25,6 +26,7 @@ import { SettingsPage } from '@/routes/shared/Settings';
 
 import { AdminApprovalsPage } from '@/routes/admin/Approvals';
 import { AdminUsersPage } from '@/routes/admin/Users';
+import { SiteEditorPage } from '@/routes/admin/SiteEditor';
 
 function HomeRouter() {
   const { firebaseUser, user, claims, loading } = useAuth();
@@ -33,7 +35,7 @@ function HomeRouter() {
   if (loading) return <div className="p-8 text-muted-foreground">Loading…</div>;
   if (!firebaseUser) return <LandingPage />;
   // Admins are routed off their claims alone.
-  if (claims?.role === 'admin') return <Navigate to="/admin/approvals" replace />;
+  if (claims?.role === 'admin') return <Navigate to="/admin/site" replace />;
   // Signed in with Firebase but no profile: show the landing page, never a
   // forced redirect. A stale session (or a profile fetch that merely failed)
   // must not hijack the home URL into the signup flow; the landing page shows
@@ -70,6 +72,7 @@ export default function App() {
 
       <Route element={<AppLayout />}>
         <Route path="/" element={<HomeRouter />} />
+        <Route path="/explore" element={<ExploreMapPage />} />
 
         {/* Person */}
         <Route
@@ -174,6 +177,14 @@ export default function App() {
         />
 
         {/* Admin */}
+        <Route
+          path="/admin/site"
+          element={
+            <RequireAuth role="admin">
+              <SiteEditorPage />
+            </RequireAuth>
+          }
+        />
         <Route
           path="/admin/approvals"
           element={

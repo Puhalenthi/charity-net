@@ -4,7 +4,7 @@
 # one-time seed together via `concurrently` — colored, prefixed, one pane.
 #
 # Ctrl-C stops everything. Sign in with the seeded email/password accounts
-# (person@charitynet.com / charity@charitynet.com / admin@charitynet.com, all password123).
+# (person@charitynet.com / charity@charitynet.com with password123; admin is username "admin" / password).
 #
 # Usage: ./scripts/start-dev.sh     (or `pnpm start` from the repo root)
 set -euo pipefail
@@ -121,7 +121,7 @@ cat <<EOF
   Email/password accounts (seeded on first run):
     person@charitynet.com   / password123
     charity@charitynet.com  / password123
-    admin@charitynet.com    / password123
+    admin  (username)        / password
 
 EOF
 

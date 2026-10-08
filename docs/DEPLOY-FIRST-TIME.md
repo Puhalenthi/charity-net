@@ -306,6 +306,12 @@ That's your live app.
 
 ## Phase L — Make yourself admin (command line, one command)
 
+> **Current setup:** this project uses a single username-login admin instead.
+> Run `FIREBASE_PROJECT_ID=YOUR_PROJECT pnpm --filter @charity-net/scripts bootstrap-admin`
+> (same credentials notes as below) and sign in as `admin` / `password`, then
+> change the password in Settings. See docs/DEPLOY.md → "Admin account".
+> The steps below grant admin to an existing email account instead.
+
 The app stores "who is an admin" as a secure token claim, which there's no
 console button for — so this one command sets it. Run it from the **same laptop
 terminal** as Phase K.

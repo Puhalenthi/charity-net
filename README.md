@@ -1,4 +1,4 @@
-# Charity Net
+# Storage Auction Connect
 
 Connecting people, charities, and the world.
 
@@ -25,7 +25,7 @@ shared/     @charity-net/shared — zod schemas, enums, geo helpers, typed API c
 client/     React app
 server/     Express API
 functions/  the single Firestore-triggered Cloud Function
-scripts/    set-admin, seed-emulator
+scripts/    set-admin, bootstrap-admin, seed-emulator
 ```
 
 See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the data model.
@@ -67,7 +67,7 @@ Demo accounts the seed creates:
 |---|---|---|
 | `person@charitynet.com` | `password123` | person |
 | `charity@charitynet.com` | `password123` | charity (pre-approved) |
-| `admin@charitynet.com` | `password123` | admin |
+| `admin` (username) | `password` | admin |
 
 ## Test plan
 

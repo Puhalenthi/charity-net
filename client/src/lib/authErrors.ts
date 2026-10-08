@@ -1,9 +1,9 @@
 // Maps Firebase Auth error codes to short, human-readable messages so the UI
 // never surfaces raw strings like "Firebase: Error (auth/invalid-credential)".
 const MESSAGES: Record<string, string> = {
-  'auth/invalid-credential': 'Incorrect email or password.',
-  'auth/invalid-login-credentials': 'Incorrect email or password.',
-  'auth/wrong-password': 'Incorrect email or password.',
+  'auth/invalid-credential': 'Incorrect email, username or password.',
+  'auth/invalid-login-credentials': 'Incorrect email, username or password.',
+  'auth/wrong-password': 'Incorrect email, username or password.',
   'auth/user-not-found': 'No account exists for that email. Try signing up instead.',
   'auth/invalid-email': 'That email address is not valid.',
   'auth/user-disabled': 'This account has been disabled.',

@@ -1,5 +1,6 @@
 import type {
   AdminSetPasswordRequest,
+  AdminSetUsernameRequest,
   ApproveCharityRequest,
   CompleteSignupRequest,
   CreateItemRequest,
@@ -11,6 +12,7 @@ import type {
 import type { Charity } from '../schemas/charity.js';
 import type { Item } from '../schemas/item.js';
 import type { User } from '../schemas/user.js';
+import type { SiteContent, SiteContentDoc, SiteVersionSummary } from '../schemas/siteContent.js';
 
 export type AuthTokenGetter = () => Promise<string | null>;
 
@@ -38,6 +40,34 @@ export type AdminCharityRecord = {
   ownerEmail: string | null;
   city: string | null;
   createdAt: number | null;
+};
+
+/** Public map pins — pre-jittered server-side, no owner or address data. */
+export type PublicMapCharity = {
+  id: string;
+  name: string;
+  description: string;
+  categoriesAccepted: string[];
+  logoUrl: string | null;
+  city: string | null;
+  lat: number;
+  lng: number;
+};
+
+export type PublicMapItem = {
+  id: string;
+  title: string;
+  category: string | null;
+  photoUrl: string | null;
+  city: string | null;
+  lat: number;
+  lng: number;
+};
+
+export type SiteDraftResponse = {
+  draft: SiteContentDoc;
+  published: SiteContentDoc | null;
+  hasUnpublishedChanges: boolean;
 };
 
 export type ApiClientOptions = {
@@ -147,6 +177,30 @@ export function createApiClient(opts: ApiClientOptions) {
     },
     adminSetUserPassword(uid: string, body: AdminSetPasswordRequest) {
       return request<{ ok: true }>('POST', `/admin/users/${uid}/password`, body);
+    },
+    adminSetUsername(body: AdminSetUsernameRequest) {
+      return request<{ ok: true; email: string }>('POST', '/admin/me/username', body);
+    },
+    siteDraft() {
+      return request<SiteDraftResponse>('GET', '/admin/site/draft');
+    },
+    saveSiteDraft(content: SiteContent) {
+      return request<{ ok: true; updatedAt: number }>('PUT', '/admin/site/draft', content);
+    },
+    discardSiteDraft() {
+      return request<SiteDraftResponse>('DELETE', '/admin/site/draft');
+    },
+    publishSite() {
+      return request<{ ok: true; versionId: string; publishedAt: number }>('POST', '/admin/site/publish');
+    },
+    siteVersions() {
+      return request<{ versions: SiteVersionSummary[] }>('GET', '/admin/site/versions');
+    },
+    restoreSiteVersion(versionId: string) {
+      return request<SiteDraftResponse>('POST', `/admin/site/versions/${versionId}/restore`);
+    },
+    publicMap() {
+      return request<{ charities: PublicMapCharity[]; items: PublicMapItem[] }>('GET', '/public/map');
     },
     geocode(q: string) {
       return request<{ lat: number; lng: number; city?: string; postalCode?: string }>(

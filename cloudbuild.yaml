@@ -9,14 +9,14 @@
 # (`gcloud builds submit --config cloudbuild.yaml .`) for an ad-hoc build from a
 # working tree. Its substitution variables (override on the command line):
 #   _REGION           — Cloud Run + Artifact Registry region (default europe-west1)
-#   _SERVICE          — Cloud Run service name      (default charity-net-api)
+#   _SERVICE          — Cloud Run service name      (default charity-net, the one Hosting rewrites /api/** to)
 #   _AR_REPO          — Artifact Registry repo name (default charity-net)
-#   _ALLOWED_ORIGINS  — CORS allowed origins        (default https://$PROJECT_ID.web.app)
+#   _ALLOWED_ORIGINS  — CORS allowed origins        (default: the custom domain + $PROJECT_ID.web.app)
 #   _STORAGE_BUCKET   — Firebase Storage bucket     (default $PROJECT_ID.appspot.com)
 
 substitutions:
   _REGION: europe-west1
-  _SERVICE: charity-net-api
+  _SERVICE: charity-net
   _AR_REPO: charity-net
   _ALLOWED_ORIGINS: ''
   _STORAGE_BUCKET: ''
@@ -53,7 +53,7 @@ steps:
       - -ceu
       - |
         # Fall back to sensible defaults when the optional substitutions are blank.
-        ALLOWED_ORIGINS="${_ALLOWED_ORIGINS:-https://$PROJECT_ID.web.app}"
+        ALLOWED_ORIGINS="${_ALLOWED_ORIGINS:-https://storageauctionconnect.org,https://www.storageauctionconnect.org,https://$PROJECT_ID.web.app,https://$PROJECT_ID.firebaseapp.com}"
         STORAGE_BUCKET="${_STORAGE_BUCKET:-$PROJECT_ID.appspot.com}"
 
         gcloud run deploy ${_SERVICE} \
@@ -64,7 +64,7 @@ steps:
           --min-instances=1 \
           --concurrency=40 \
           --set-secrets=OPENAI_API_KEY=openai-key:latest,GOOGLE_MAPS_SERVER_KEY=gmaps-server-key:latest,JOB_SECRET=cron-job-secret:latest \
-          --set-env-vars=FIREBASE_PROJECT_ID=$PROJECT_ID,FIREBASE_STORAGE_BUCKET=$$STORAGE_BUCKET,ALLOWED_ORIGINS=$$ALLOWED_ORIGINS
+          --set-env-vars="^@^FIREBASE_PROJECT_ID=$PROJECT_ID@FIREBASE_STORAGE_BUCKET=$$STORAGE_BUCKET@ALLOWED_ORIGINS=$$ALLOWED_ORIGINS"
 
 images:
   - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_AR_REPO}/${_SERVICE}:$SHORT_SHA

@@ -2,6 +2,8 @@ import { Router } from 'express';
 import type { UserRecord } from 'firebase-admin/auth';
 import {
   AdminSetPasswordRequestSchema,
+  AdminSetUsernameRequestSchema,
+  toLoginEmail,
   ApproveCharityRequestSchema,
   RejectCharityRequestSchema,
 } from '@charity-net/shared';
@@ -121,6 +123,27 @@ adminRouter.post(
     }
   },
 );
+
+// Admins sign in with a username, stored as a synthetic email (see
+// shared/constants/adminLogin). Renaming is just an email change on the
+// account; the uid, claims and profile are untouched.
+adminRouter.post('/me/username', requireAuth, requireAdmin, requireRecentLogin, async (req, res, next) => {
+  try {
+    const { username } = AdminSetUsernameRequestSchema.parse(req.body);
+    const uid = req.user!.uid;
+    const email = toLoginEmail(username);
+    await auth.updateUser(uid, { email });
+    await COL.users().doc(uid).set({ email, updatedAt: Date.now() }, { merge: true });
+    await COL.adminAudit().add({ type: 'username_set', actorUid: uid, username, createdAt: Date.now() });
+    res.json({ ok: true, email });
+  } catch (err) {
+    if ((err as { code?: string }).code === 'auth/email-already-exists') {
+      next(new HttpError(409, 'username_taken', 'That username is already in use'));
+      return;
+    }
+    next(err);
+  }
+});
 
 adminRouter.get('/charities/pending', requireAuth, requireAdmin, async (_req, res, next) => {
   try {

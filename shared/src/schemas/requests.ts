@@ -71,3 +71,12 @@ export const AdminSetPasswordRequestSchema = z.object({
 export type AdminSetPasswordRequest = z.infer<typeof AdminSetPasswordRequestSchema>;
 
 export const RoleSchema = z.enum(USER_ROLES);
+
+export const AdminSetUsernameRequestSchema = z.object({
+  username: z
+    .string()
+    .trim()
+    .toLowerCase()
+    .regex(/^[a-z0-9._-]{3,32}$/, '3–32 characters: letters, numbers, dot, dash or underscore'),
+});
+export type AdminSetUsernameRequest = z.infer<typeof AdminSetUsernameRequestSchema>;

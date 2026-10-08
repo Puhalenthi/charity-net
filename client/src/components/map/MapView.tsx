@@ -21,11 +21,14 @@ const MARKER_ICON = {
 };
 
 type MapViewProps = {
-  center: LatLng;
-  radiusKm: number;
+  /** Omit center/radius to show the whole continental US and fit to the pins. */
+  center?: LatLng;
+  radiusKm?: number;
   pins: MapPin[];
   renderPopup?: (id: string) => React.ReactNode;
 };
+
+const US_CENTER: LatLng = { lat: 39.8, lng: -98.6 };
 
 export function MapView(props: MapViewProps) {
   const apiKey = import.meta.env.VITE_GOOGLE_MAPS_KEY;
@@ -40,13 +43,14 @@ export function MapView(props: MapViewProps) {
     <APIProvider apiKey={apiKey}>
       <div className="h-[60vh] w-full rounded-lg overflow-hidden border">
         <Map
-          defaultCenter={props.center}
-          defaultZoom={zoomForRadius(props.radiusKm)}
+          defaultCenter={props.center ?? US_CENTER}
+          defaultZoom={props.center ? zoomForRadius(props.radiusKm ?? 10) : 4}
           mapId="charity-net"
           disableDefaultUI={false}
           gestureHandling="greedy"
         >
           <MarkerCluster pins={props.pins} renderPopup={props.renderPopup} />
+          {!props.center && <FitToPins pins={props.pins} />}
         </Map>
       </div>
     </APIProvider>
@@ -105,6 +109,23 @@ function MarkerCluster({
       <div className="map-popup min-w-[200px]">{renderPopup(openId)}</div>
     </InfoWindow>
   );
+}
+
+/** Frames all pins whenever the set changes (e.g. switching map tabs). */
+function FitToPins({ pins }: { pins: MapPin[] }) {
+  const map = useMap();
+  useEffect(() => {
+    if (!map || pins.length === 0) return;
+    if (pins.length === 1) {
+      map.setCenter(pins[0]!.position);
+      map.setZoom(12);
+      return;
+    }
+    const bounds = new google.maps.LatLngBounds();
+    pins.forEach((p) => bounds.extend(p.position));
+    map.fitBounds(bounds, 48);
+  }, [map, pins]);
+  return null;
 }
 
 function zoomForRadius(radiusKm: number): number {

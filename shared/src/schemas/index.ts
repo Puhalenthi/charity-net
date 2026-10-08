@@ -7,3 +7,4 @@ export * from './thread.js';
 export * from './notification.js';
 export * from './wishlist.js';
 export * from './requests.js';
+export * from './siteContent.js';
